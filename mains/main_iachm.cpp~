@@ -1,0 +1,32 @@
+#include "../source/IACHM.h"
+#include "../source/IAGRID.h"
+#include "../source/IAResult.h"
+
+int main()
+{
+  int N = pow(2,13);
+  IACHM iachm;
+  IAGRID iagrid(N,N, iachm.get_T());
+  IAResult iaresult(&iagrid);
+  
+  iachm.fft.Initialize(N, iachm.get_T(), iaresult.omega, iaresult.tau);
+
+  iachm.Run(&iaresult);
+  iaresult.PrintResult("IACHM.n0.500.U2.000.T0.050");
+
+  iachm.SetParams(4.0, 0.05, 0.5);
+  iachm.Run(&iaresult);
+  iaresult.PrintResult("IACHM.n0.500.U4.000.T0.050");
+
+  iachm.PHSymmetricCase = false;
+  iaresult.n=0.6;
+  iachm.Run(&iaresult);
+  iaresult.PrintResult("IACHM.n0.600.U4.000.T0.050");
+
+  iaresult.mu=2.8;
+  iachm.UseFixedMuSIAMRun = true;
+  iachm.Run(&iaresult);
+  iaresult.PrintResult("IACHM.n0.600.U4.000.T0.050");
+
+}
+
