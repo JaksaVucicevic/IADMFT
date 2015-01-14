@@ -1,7 +1,6 @@
 #include "Broyden.h"
 #include "Mixer.h"
 #include "IAResult.h"
-#include "IAresArray.h"
 #include "Input.h"
 #include "IAGRID.h"
 #include "Loop.h"
@@ -122,9 +121,7 @@ void Loop::SetForceSymmetry(bool FS)
 
 }
 
-//=======================================================================================//
-// Run with single result
-//=======================================================================================//
+//---------------------------------------------------//
 
 bool Loop::Run(IAResult* r)
 {
@@ -219,117 +216,6 @@ bool Loop::Run(IAResult* r)
   if (BroydenStatus == 1) B.TurnOff();
   return !converged;
 }
-
-//=======================================================================================//
-// Run with IAresArray - applicable for StatDMFT
-//=======================================================================================//
-
-
-bool Loop::Run(IAresArray* a)
-{
-  this->a = a;
-  int Nsites = a->get_N();
-  this->iagrid = a->r[0].iagrid;
-  N = iagrid->get_N();
-  
-  //Initialize mixer
-  printf("|||||||||||||||||||||||||| LOOP:: C0 = %d, C1 = %d\n",Coefs[0],Coefs[1]);
-  Mixer< complex<double> > mixer(N*Nsites, NtoMix, Coefs, (UseBroyden) ? BroydenStartDiff : Accr);
-  mixer.Mix(a->totalDelta);
-
-  //initialize broyden
-  Broyden B;
-  B.SetParameters(N*Nsites, MAX_ITS, 1.0, 0.01, Accr);
-  int BroydenStatus = 0;
-  // Broyden status: 0 - Waiting for mixer to reach BroydenStartDiff
-  //                 1 - Running
-  //                 2 - Suspended
-
-  //-------LambdaCalculatorPrepare------//  
-  LC->ResetCounter();
-  LC->SetOmega(a->r[0].omega); 
-  LC->SetN(N*Nsites);
-  LC->SetOffset(0);
-
-
-  //Halt on first iteration if HaltOnIterations
-  int Halt = (HaltOnIterations) ? 1 : 0; 
-
-  bool converged = false;
-  //------------ DMFT loop-------------//
-  for (int it = 1; it<=MAX_ITS; it++)
-  {  printf("--- DMFT Loop Iteration %d ---\n", it);
-     Iteration = it;
-    
-     //----- solve SIAM ------//
-     if ( SolveSIAM() ) return true;
-     //-----------------------//
-
-     //halt
-     if (it==Halt)
-     { char FN[300];
-       sprintf(FN,"intermediate/");
-       char command[300];
-       sprintf(command,"mkdir %s",FN);  
-       a->PrintAll(FN);
-       printf("Next stop: ");
-       cin >> Halt; 
-     }
-
-     //print out intermediate results
-     if (PrintIntermediate)
-     { char FN[300];
-       sprintf(FN,"intermediate.%d/", it);
-       char command[300];
-       sprintf(command,"mkdir %s",FN);  
-       a->PrintAll(FN);
-     }
-
-     //--- self-consistency ---// 
-     CalcDelta(); 
-     //------------------------//
-
-     // check for nans
-     for (int id = 0; id<Nsites; id++) 
-     for (int i = 0; i < N; i++) 
-       if ( a->r[id].Delta[i] != a->r[id].Delta[i] ) 
-       { printf("nan in Delta!!!!\n"); return true; }
-   
-     if (ForceSymmetry)
-       for (int id = 0; id<Nsites; id++) 
-       for (int i = 0; i < N; i++) 
-         a->r[id].Delta[i] =complex<double>( 0, imag(a->r[id].Delta[i]) );
-
-     a->WriteTotalDelta();
-
-     printf("   Loop: mixing and checking convergence...\n");
-     // now mix and check if converged
-     int conv = 0;
-     if (BroydenStatus == 1) 
-       conv = B.CalculateNew(a->totalDelta,it);
-     else
-     { if (mixer.Mix(a->totalDelta))
-         if ((UseBroyden)and(BroydenStatus == 0)) 
-         { B.TurnOn(it); //switch to broyden if mixer converged
-           BroydenStatus++;
-           B.CurrentDiff = mixer.CurrentDiff;
-         } 
-         else conv = 1;
-     }
-
-     LC->CalculateLambda(a->totalDelta);
-
-     a->ReadTotalDelta();
-     
-     if ((conv==1)and(it>MIN_ITS)) { converged = true; break; }
-  }
-  //-----------------------------------//
-  
-  if (BroydenStatus == 1) B.TurnOff();
-  return !converged;
-}
-
-
 
 bool Loop::SolveSIAM()
 {

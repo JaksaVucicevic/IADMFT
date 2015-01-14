@@ -5,6 +5,7 @@
 #include <omp.h>
 #include <iostream>
 #include <cmath>
+#include <cstdlib>
 #include "nrutil.h"
 // #include "mkl_types.h"
 //#define MKL_Complex16 std::complex<double>
@@ -126,6 +127,38 @@ void PrintFunc(const char* FileName, std::vector< complex<double> > Y, std::vect
     fprintf(f,"%.15le %.15le %.15le\n", X[i], real(Y[i]), imag(Y[i]));
   fclose(f);
 }
+
+void PrintMatrix(const char* FileName, int N, int M, double** A)
+{
+  FILE *f;
+  f = fopen(FileName, "w");
+  for (int i=0; i<N; i++)
+  { for (int j=0; j<M; j++)
+      fprintf(f,"%.3f\t", A[i][j]);
+    fprintf(f,"\n");
+  }
+  fclose(f);
+}
+
+void PrintMatrix(const char* FileName, int N, int M, complex<double>** A)
+{
+  FILE *f;
+  f = fopen(FileName, "w");
+  for (int i=0; i<N; i++)
+  { for (int j=0; j<M; j++)
+      fprintf(f,"%.3f\t", real(A[i][j]));
+    fprintf(f,"\n");
+  }
+  fprintf(f,"\n\n");
+  for (int i=0; i<N; i++)
+  { for (int j=0; j<M; j++)
+      fprintf(f,"%.3f\t", imag(A[i][j]));
+    fprintf(f,"\n");
+  }
+
+  fclose(f);
+}
+
 
 void GetDimensions(const char* FileName, int &N, int &M)
 {
@@ -337,6 +370,8 @@ void RotateVector2D(double* v, double angle)
   RotateVector(2, v, angle, (int []){0,1} );
 }
 
+//----------------------------- Inverse Real Matrix ---------------------------------------//
+
 #define NRANSI
 #define TINY 1.0e-20
 
@@ -439,13 +474,109 @@ void InvertMatrix(int N, double** A, double** invA, double &det)
 #undef NRANSI
 
 
+//----------------------------- Inverse Complex Matrix ---------------------------------------//
+namespace ComplexMatrixInversion
+{
 
+// calculate the cofactor of element (row,col)
+int GetMinor(complex<double> **src, complex<double> **dest, int row, int col, int order)
+{
+    // indicate which col and row is being copied to dest
+    int colCount=0,rowCount=0;
+ 
+    for(int i = 0; i < order; i++ )
+    {
+        if( i != row )
+        {
+            colCount = 0;
+            for(int j = 0; j < order; j++ )
+            {
+                // when j is not the element
+                if( j != col )
+                {
+                    dest[rowCount][colCount] = src[i][j];
+                    colCount++;
+                }
+            }
+            rowCount++;
+        }
+    }
+ 
+    return 1;
+}
+ 
+// Calculate the determinant recursively.
+complex<double> CalcDeterminant( complex<double> **mat, int order)
+{
+    // order must be >= 0
+    // stop the recursion when matrix is a single element
+    if( order == 1 )
+        return mat[0][0];
+ 
+    // the determinant value
+    complex<double> det = 0;
+ 
+    // allocate the cofactor matrix
+    complex<double> **minor;
+    minor = new complex<double>*[order-1];
+    for(int i=0;i<order-1;i++)
+        minor[i] = new complex<double>[order-1];
+ 
+    for(int i = 0; i < order; i++ )
+    {
+        // get minor of element (0,i)
+        GetMinor( mat, minor, 0, i , order);
+        // the recusion is here!
+ 
+        det += (i%2==1?-1.0:1.0) * mat[0][i] * CalcDeterminant(minor,order-1);
+        //det += pow( -1.0, i ) * mat[0][i] * CalcDeterminant( minor,order-1 );
+    }
+ 
+    // release memory
+    for(int i=0;i<order-1;i++)
+        delete [] minor[i];
+    delete [] minor;
+ 
+    return det;
+}
 
+// matrix inversioon
+// the result is put in Y
+void MatrixInversion(complex<double> **A, int order, complex<double> **Y)
+{
+    // get the determinant of a
+    complex<double> det = 1.0/CalcDeterminant(A,order);
+ 
+    // memory allocation
+    complex<double> *temp = new complex<double>[(order-1)*(order-1)];
+    complex<double> **minor = new complex<double>*[order-1];
+    for(int i=0;i<order-1;i++)
+        minor[i] = temp+(i*(order-1));
+ 
+    for(int j=0;j<order;j++)
+    {   printf("Matrix inversion, j=%d\n",j);
+        for(int i=0;i<order;i++)
+        {
+            // get the co-factor (matrix) of A(j,i)
+            GetMinor(A,minor,j,i,order);
+            Y[i][j] = det*CalcDeterminant(minor,order-1);
+            if( (i+j)%2 == 1)
+                Y[i][j] = -Y[i][j];
+        }
+    }
+ 
+    // release memory
+    //delete [] minor[0];
+    delete [] temp;
+    delete [] minor;
+}
 
+}
 
-
-
-
+void InvertMatrix(int N, complex<double>** A, complex<double>** invA)
+{
+  ComplexMatrixInversion::MatrixInversion(A, N, invA);
+}
 
 //------------------ integral routine ---------------------//
 
@@ -1047,6 +1178,29 @@ complex<double> interpl(int N, complex<double>* Y, double* X, double x)
   delete [] ImY;
 
   return complex<double>(ReYx,ImYx);
+}
+
+//------------------------------------------------------------------------------//
+
+//---------Cubic alttice hopping matrix-----------//
+
+void initCubicTBH(int Nx, int Ny, int Nz, double t, double** H)
+{
+  for(int i=0; i<Nx; i++)
+  for(int j=0; j<Ny; j++)
+  for(int k=0; k<Nz; k++)
+  { 
+    H [ k*Nx*Ny+j*Nx+i ]  [ k*Nx*Ny + j*Nx + ( (i+1==Nx) ? (0) : (i+1) ) ] = -t;
+    H [ k*Nx*Ny+j*Nx+i ]  [ k*Nx*Ny + j*Nx + ( (i==0) ? (Nx-1) : (i-1) ) ] = -t;
+
+    H [ k*Nx*Ny+j*Nx+i ]  [ k*Nx*Ny + ( (j+1==Ny) ? (0) : (j+1) )*Nx + i ] = -t;
+    H [ k*Nx*Ny+j*Nx+i ]  [ k*Nx*Ny + ( (j==0) ? (Ny-1) : (j-1) )*Nx + i ] = -t;
+
+    if (Nz>1)
+    { H [ k*Nx*Ny+j*Nx+i ]  [ ( (k+1==Nz) ? (0) : (k+1) )*Nx*Ny + j*Nx + i ] = -t;
+      H [ k*Nx*Ny+j*Nx+i ]  [ ( (k==0) ? (Nz-1) : (k-1) )*Nx*Ny + j*Nx + i ] = -t;
+    }
+  } 
 }
 
 //------------------------------------------------------------------------------//

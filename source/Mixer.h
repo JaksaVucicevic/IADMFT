@@ -136,7 +136,10 @@ bool Mixer<T>::Mix(T* Solution)
        OutputSolution(Solution);
     }
   }
-  else AddSolution(Solution);
+  else 
+  {  AddSolution(Solution);
+     printf("Mixer:: First iteration - nothing to mix.\n");
+  }
   return b;
 }
 

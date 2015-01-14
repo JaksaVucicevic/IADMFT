@@ -7,6 +7,10 @@
 #include "routines.h"
 #include "IBZ.h"
 
+IAResult::IAResult()
+{
+}
+
 IAResult::IAResult(IAGRID* g)
 {
   Initialize(g);
@@ -91,7 +95,7 @@ void IAResult::ReleaseMemory()
 void IAResult::PrintResult(const char* ResultFN)
 { 
   FILE *f;
-  f = fopen(ResultFN, "w+");
+  f = fopen(ResultFN, "w");
   
   fprintf(f,"# n = %le n0 = %le mu = %le mu0=%le\n",n,n0,mu,mu0);   
 
@@ -242,13 +246,13 @@ complex<double> IAResult::Lambda(int n, IBZ* ibz)
                 );
     }
     sum += ibz->sum();
-    /*  if (m==N) 
+      if ((m==N)and(n==1)) 
       { 
         char FN[300];
         sprintf(FN,"summand.n%d",n);
         ibz->PrintToFile(FN);
       }
-    */
+    
   }
 
   delete [] iw_large;

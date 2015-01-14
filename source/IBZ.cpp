@@ -93,8 +93,8 @@ complex<double> IBZ::sum()
 void IBZ::PrintToFile(const char* FN)
 {
   FILE* f = fopen(FN,"w");
-  for(int i=0; i<Nx; i+=10)
-  { for(int j=0; j<Ny; j+=10)
+  for(int i=0; i<Nx; i+=1)
+  { for(int j=0; j<Ny; j+=1)
       fprintf(f,"%.15le %.15le %.15le %.15le %.15le %.15le\n", kx[i], ky[j], epsilon[i][j], velocity[i][j], real(summand[i][j]), imag(summand[i][j]));
     fprintf(f,"\n");
   } 

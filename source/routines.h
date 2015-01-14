@@ -43,6 +43,8 @@ void PrintFunc(const char* FileName, int N, double* Y);
 void PrintFunc(const char* FileName, int N, double* Y, double* X);
 void PrintFunc(const char* FileName, std::vector< complex<double> > Y, std::vector<double> X);
 void PrintFunc3D(const char* FileName, int N, complex<double>** Y, double* X);
+void PrintMatrix(const char* FileName, int N, int M, double** A);
+void PrintMatrix(const char* FileName, int N, int M, complex<double>** A);
 void ReadFunc(const char* FileName, int &N, int &M, double** &X);
 //void ReadFunc(const char* FileName, int &N, complex<double>* &Y, double* &X, bool PurelyReal=false);
 //void ReadFunc(const char* FileName, int &N, double* &Y, double* &X);
@@ -55,6 +57,7 @@ void CreateRotationMatrix(double** m, int N, double angle, int* plane);
 void RotateVector(int N, double* v, double angle, int* plane);
 void RotateVector2D(double* v, double angle);
 void InvertMatrix(int N, double** A, double** invA, double &det);
+void InvertMatrix(int N, complex<double>** A, complex<double>** invA);
 
 //==================== DOSes and Init Deltas ========================//
 
@@ -80,6 +83,9 @@ void get_G_from_DOS(int DOStype, double t, int N, double* omega, complex<double>
 void get_Sigma_from_G(double t, int N, double* omega, complex<double>* G, complex<double>* Sigma);
 
 complex<double> LS_get_G(int DOStype, double t, complex<double> com);
+
+void initCubicTBH(int Nx, int Ny, int Nz, double t, double** H);
+
 void InitG(int DOStype, double t, int N, double* omega, complex<double>* G);
 void InitG(int DOStype, double t, int N, complex<double>* omega, complex<double>* G);
 

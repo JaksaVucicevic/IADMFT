@@ -7,9 +7,13 @@ class IBZ;
 class IAResult
 {
   public:
+    IAResult();
     IAResult(IAGRID* g);
     IAResult(const IAResult &r);
     ~IAResult();
+
+    void Initialize(IAGRID* g);
+    void ReleaseMemory();
 
     void Reset();
     void Reset(IAGRID* g);
@@ -44,7 +48,8 @@ class IAResult
         
     //double TriangularConductivity(double T, int Nkx, int Nky, int Nnu, const char * integrandFN=NULL);
 
-  private:
-    void Initialize(IAGRID* g);
-    void ReleaseMemory();
+
 };
+
+
+

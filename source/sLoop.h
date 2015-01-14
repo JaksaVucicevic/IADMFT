@@ -1,7 +1,6 @@
 #include <iostream>
 
 class IAResult;
-class IAresArray;
 class IAGRID;
 class LambdaCalculator;
 
@@ -16,7 +15,6 @@ class Loop
     int Iteration;
 
     IAResult* r;
-    IAresArray* a;
 
     IAGRID* iagrid;
 
@@ -53,7 +51,6 @@ class Loop
     ~Loop();
     
     bool Run(IAResult* r);
-    bool Run(IAresArray* a);
     
     void SetForceSymmetry(bool FS);
     void SetGrid(IAGRID* g);

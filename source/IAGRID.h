@@ -1,10 +1,3 @@
-#include <cstdio>
-#include <complex>
-#include <iostream>
-#include <cmath>
-
-using namespace std;
-
 namespace IntialGtypes
 {
   const int Metallic = 0;
