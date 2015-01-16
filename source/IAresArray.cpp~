@@ -19,7 +19,7 @@ IAresArray::IAresArray(int N, IAGRID* g)
 IAresArray::IAresArray(IAresArray &a)
 {
   this->N = a.get_N();
-
+  int Nw = a.r[0].iagrid->get_N();
   r = new IAResult[N];
    
   for(int id=0; id<N; id++)
@@ -27,7 +27,6 @@ IAresArray::IAresArray(IAresArray &a)
     r[id].CopyFrom(a.r[id]); 
   }
 
-  int Nw = a.r[0].iagrid->get_N();
   totalDelta = new complex<double>[Nw*N];
   for(int i=0; i<N*Nw; i++)
     totalDelta[i] = a.totalDelta[i];

@@ -65,9 +65,7 @@ class LambdaCalculator
     void SetContinuedDiffsPrinted(int continued_Ndiffs, const int* continued_is);
     void SetOutputFileName(const char* FN);	//only the parameters extnesion (e.g. ".U2.500.T0.050.W1.000.n0.500"). the part "diffs", "lambdas" or "lambdas.continued." is automaticaly inserted at the beginning
     void SetDoOutput(bool DoOutput);
-    void SetDoContinued(bool DoContinued) { this->DoContinued = DoContinued; };
     void ResetCounter(int counter=0);
-    
      
     //====================================//
     double CalculateLambda(double* rX);		// continued X not applicable when this is called

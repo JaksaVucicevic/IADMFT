@@ -11,10 +11,17 @@ OP = ../obj
 # executable path
 RP = ../bin
 
-MKL_LIB_PATH =/opt/intel/mkl/lib/intel64
-MKL_FLAGS = -Wl,--start-group  $(MKL_LIB_PATH)/libmkl_intel_lp64.a $(MKL_LIB_PATH)/libmkl_sequential.a $(MKL_LIB_PATH)/libmkl_core.a -Wl,--end-group -lm
+#------paradox------#
+#module load intel
+#module load intel/mkl
 
-GMP_FLAGS = -lgmp -std c++11
+MKL_FLAGS = -mkl
+
+#---------ui--------#
+#MKL_LIB_PATH =/opt/intel/mkl/lib/intel64
+#MKL_FLAGS = -Wl,--start-group  $(MKL_LIB_PATH)/libmkl_intel_lp64.a $(MKL_LIB_PATH)/libmkl_sequential.a $(MKL_LIB_PATH)/libmkl_core.a -Wl,--end-group -lm
+
+#GMP_FLAGS = -lgmp -std c++11
 
 
 # -----------  SERIAL ------------------------------------#
@@ -103,13 +110,13 @@ $(OP)/GRID.o : $(SP)/GRID.cpp $(SP)/GRID.h $(SP)/routines.h
 $(OP)/nrutil.o : $(SP)/nrutil.h $(SP)/nrutil.c
 	$(Cpp) $(FLAGS) -c -o $@ $(SP)/nrutil.c
 
- numerical routines from NumRec
+# numerical routines from NumRec
 $(OP)/pade.o : $(SP)/pade.h $(SP)/pade.cpp
 	$(Cpp) $(FLAGS) -c -o $@ $(SP)/pade.cpp $(GMP_FLAGS)
 
 # Matrix inversion from MKL
 $(OP)/mkl_invertMatrix.o : $(SP)/mkl_invertMatrix.h $(SP)/mkl_invertMatrix.cpp
-	$(Cpp) $(FLAGS) -c -o $@ $(SP)/mkl_invertMatrix.cpp 
+	$(Cpp) $(FLAGS) -c -o $@ $(SP)/mkl_invertMatrix.cpp $(MKL_FLAGS)
 
 
 # clean all object and exec files

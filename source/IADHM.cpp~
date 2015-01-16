@@ -114,8 +114,9 @@ bool IADHM::SolveSIAM()
 
 void IADHM::CalcDelta()
 {
+  int Nfreq = a->r[0].iagrid->get_N();
   #pragma omp parallel for 
-  for(int n=0; n<N; n++)
+  for(int n=0; n<Nfreq; n++)
   { 
     printf("IADMFT::CalcDelta: working iw_%d\n",n);
     complex<double>** invG = Array2D< complex<double> >(Nsites, Nsites);

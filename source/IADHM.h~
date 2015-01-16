@@ -40,7 +40,7 @@ class IADHM: public Loop
 
     double** H0;
   
-    void SetParams( double U, double W, double T );
+    void SetParams( int Nsites, double U, double W, double T );
     void RandomizeMus( IAresArray &a, double mu, unsigned int seed=0 );
     void GetMus( IAresArray &a, double* mus );
     void SetMus( IAresArray &a, double* mus );

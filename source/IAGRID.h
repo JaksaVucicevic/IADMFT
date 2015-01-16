@@ -1,9 +1,9 @@
-namespace IntialGtypes
+/*namespace IntialGtypes
 {
   const int Metallic = 0;
   const int Insulating = 1;
 }
-
+*/
 class IAGRID
 { 
   private:  
