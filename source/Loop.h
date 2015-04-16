@@ -21,6 +21,7 @@ class Loop
     IAGRID* iagrid;
 
     int N;
+    int Nsites;
 
     //---- Broyden options ----//
     bool UseBroyden;

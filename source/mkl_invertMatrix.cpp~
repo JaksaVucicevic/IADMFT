@@ -4,12 +4,8 @@
 #include <iostream>
 #include "mkl_invertMatrix.h"
 
-//#include <mkl.h>
-//#include <mkl_types.h>
-
-#include "mkl.h"
-#include "mkl_types.h"
-
+#include <mkl.h>
+#include <mkl_types.h>
 
 using namespace std;
 

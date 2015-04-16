@@ -233,7 +233,7 @@ bool Loop::Run(IAResult* r)
 bool Loop::Run(IAresArray* a)
 {
   this->a = a;
-  int Nsites = a->get_N();
+  Nsites = a->get_N();
   this->iagrid = a->r[0].iagrid;
   N = iagrid->get_N();
   
@@ -252,7 +252,7 @@ bool Loop::Run(IAresArray* a)
 
   //-------LambdaCalculatorPrepare------//  
   LC->ResetCounter();
-  LC->SetOmega(a->r[0].omega); 
+  LC->SetDoContinued(false); //not applicable!
   LC->SetN(N*Nsites);
   LC->SetOffset(0);
 
