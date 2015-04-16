@@ -110,11 +110,8 @@ $(OP)/GRID.o : $(SP)/GRID.cpp $(SP)/GRID.h $(SP)/routines.h
 $(OP)/nrutil.o : $(SP)/nrutil.h $(SP)/nrutil.c
 	$(Cpp) $(FLAGS) -c -o $@ $(SP)/nrutil.c
 
-<<<<<<< HEAD
+
 # pade
-=======
-# numerical routines from NumRec
->>>>>>> b5f1f785caff23f83c538fc9975a365e70a3e9ae
 $(OP)/pade.o : $(SP)/pade.h $(SP)/pade.cpp
 	$(Cpp) $(FLAGS) -c -o $@ $(SP)/pade.cpp $(GMP_FLAGS)
 

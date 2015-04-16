@@ -87,13 +87,16 @@ void FFT::Prepare_G_0_and_beta(complex<double> G_t[])
 
   if (not HalfFilling)
   { G_0 = CubicFrom4points(G_t, tau_m);
-    G_beta = - 1.0 - G_0;
+    complex<double> G_aux[4];
+    for(int i=0; i<4; i++) G_aux[i] = G_t[N-1-i];
+    G_beta = CubicFrom4points(G_aux, tau_m); 
+    //G_beta = - 1.0 - G_0;
   }
-  else
+/*  else
   { G_0 = -0.5;
     G_beta = - 0.5;
   }
-  
+*/  
   //ovo treba videti da li je dobro
 /*  for (int n=0; n<N; n++)
   {
@@ -385,6 +388,7 @@ void FFT::TtoF(complex<double> G_t[], complex<double> G_f[])
 
 FFT::FFT()
 {
+  HalfFilling = false;
   Initialized = false;
 }
 
