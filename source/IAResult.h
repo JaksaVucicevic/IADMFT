@@ -43,6 +43,9 @@ class IAResult
     complex<double> OpticalConductivity(int n, IBZ* ibz);
     complex<double> Lambda(int n, IBZ* ibz);
 
+    complex<double> InternalEnergy(double T, IBZ* ibz);
+    complex<double> InternalEnergy(double T);
+    complex<double> SmartInternalEnergy(double T);
     complex<double> OpticalConductivity(int n, double (*v)(double)=NULL);
     complex<double> Lambda(int n, double (*v)(double)=NULL);
         

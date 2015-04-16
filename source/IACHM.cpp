@@ -82,6 +82,9 @@ bool IACHM::SolveSIAM()
   iasiam->SetUTepsilon(U,T,0.0);
   iasiam->PHSymmetricCase = PHSymmetricCase;
   iasiam->fft = &fft;
+  
+  iasiam->PatchTailWithAtomicLimit = PatchTailWithAtomicLimit;
+  iasiam->AtomicCutoff = AtomicCutoff;
 
   if (UseFixedMuSIAMRun)
     return iasiam->Run(r);

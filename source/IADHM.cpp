@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <cstdlib>
 #include "IADHM.h"
 #include "IAGRID.h"
 #include "IAResult.h"

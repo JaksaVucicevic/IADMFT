@@ -81,17 +81,27 @@ complex<double> FFT::Correction_FtoT(int m, complex<double> G_f_max)
 
 //---------------F to T: Calculate G_0 and G_beta------------------
 
-void FFT::Prepare_G_0_and_beta(complex<double> G_f[])
+void FFT::Prepare_G_0_and_beta(complex<double> G_t[])
 {
   double sum = 0.0;
 
+  if (not HalfFilling)
+  { G_0 = CubicFrom4points(G_t, tau_m);
+    G_beta = - 1.0 - G_0;
+  }
+  else
+  { G_0 = -0.5;
+    G_beta = - 0.5;
+  }
+  
   //ovo treba videti da li je dobro
-  for (int n=0; n<N; n++)
+/*  for (int n=0; n<N; n++)
   {
     sum+=real(G_f[n]);
   }
   G_0 = 2.0*Temp*sum - 0.5;
   G_beta = -2.0*Temp*sum - 0.5;
+*/
 }
 
 //--------------------------------------------------------------------
@@ -250,6 +260,7 @@ void FFT::Initialize(int N, double T, double* omega, double* tau)
 {
   if (Initialized) ReleaseMemory();
 
+  HalfFilling = false;
   this->N = N;
   Temp=T;
   omega_n=omega;
@@ -294,6 +305,11 @@ void FFT::Initialize(int N, double T, double* omega, double* tau)
     ST_3[i] = Stage_3(i);
   }
   Initialized = true;
+}
+
+void FFT::SetHalfFilling(bool HalfFilling)
+{
+  this->HalfFilling = HalfFilling;
 }
 
 
@@ -358,7 +374,7 @@ void FFT::TtoF(complex<double> G_t[], complex<double> G_f[])
                                  * G_t[N-1] );
   }
 
-  Prepare_G_0_and_beta(G_f);
+  Prepare_G_0_and_beta(G_t);
   for (int n=0; n<N; n++)  
     G_f[n] += Correction_TtoF(n, G_t);
 

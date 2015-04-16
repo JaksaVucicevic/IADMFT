@@ -42,6 +42,8 @@ class IACHM: public Loop
     void SetNIDOS(int Nw, double* NIDOS, double* w);
     bool UseFixedMuSIAMRun;
     bool PHSymmetricCase;
+    bool PatchTailWithAtomicLimit;
+    double AtomicCutoff;
 
     void SetUseBethe(bool UseBethe);
 

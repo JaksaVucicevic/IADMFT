@@ -59,6 +59,13 @@ class IASIAM
     void get_G();
     void get_G(complex<double>* V); //used by broyden in solving systems of equations
 
+
+    //complex<double> AtomicLimitG(int i);
+
+
+    void PatchAtomicLimitSigma();
+    void PatchAtomicLimitG();
+
     //--- IASIAM solver ---//
     void SolveSiam(complex<double>* V);
     void Amoeba(double accr, complex<double>* V, void (IASIAM::*f)(complex<double>*));	//amoeba method for mu0 search.
@@ -75,6 +82,9 @@ class IASIAM
 
     //------ OPTIONS -------//
     bool PHSymmetricCase;
+    bool PatchTailWithAtomicLimit;
+    double AtomicCutoff;
+
     void SetBroydenParameters(int MAX_ITS, double Accr);
     void SetT(double T);
     void SetU(double U);    

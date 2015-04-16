@@ -26,6 +26,9 @@ void IASIAM::Defaults()
   max_tries = 2;
   UseBroydenFormu0 = true; 
 
+  PatchTailWithAtomicLimit = true;
+  AtomicCutoff = 12.0;
+
   AmoebaScanStart = -2.0;
   AmoebaScanEnd = 2.0; 
   AmoebaScanStep = 0.2;
@@ -239,6 +242,31 @@ bool IASIAM::Run_CHM(IAResult* r) //output
 }
 
 //=================================== FUNCTIONS ===================================//
+/*
+complex<double> IASIAM::AtomicLimitG(int i)
+{
+  return (1.0-r->n)/(ii*r->omega[i]+r->mu) + r->n/(ii*r->omega[i]+r->mu-U);
+}
+
+void IASIAM::PatchAtomicLimitSigma()
+{
+  for (int i=0; i<N; i++) 
+    if (r->omega[i]>12.0) r->Sigma[i] = ii*r->omega[i] + r->mu - 1.0/AtomicLimitG(i);
+}
+*/
+
+void IASIAM::PatchAtomicLimitSigma()
+{
+  for (int i=0; i<N; i++) 
+    if (r->omega[i]>AtomicCutoff) r->Sigma[i] = AtomicLimitSigma(r->omega[i], r->mu, r->n, U);
+}
+
+void IASIAM::PatchAtomicLimitG()
+{
+  for (int i=0; i<N; i++) 
+    if (r->omega[i]>AtomicCutoff) r->G[i] = AtomicLimitG(r->omega[i], r->mu, r->n, U);
+}
+
 
 void IASIAM::get_G0()
 {
@@ -300,6 +328,8 @@ void IASIAM::get_Sigma()
     for (int i=0; i<N; i++) 
       r->Sigma[i] =  U * r->n + r->SOCSigma[i];
   }
+
+  if (PatchTailWithAtomicLimit) PatchAtomicLimitSigma();
 }
 
 //---------------- Get G -------------------------------//
@@ -309,7 +339,9 @@ void IASIAM::get_G()
   get_Sigma();
 
   for (int i=0; i<N; i++) 
-    r->G[i] =  1.0 / (ii*r->omega[i] + r->mu - epsilon - r->Delta[i] - r->Sigma[i]) ;     
+    r->G[i] =  1.0 / (ii*r->omega[i] + r->mu - epsilon - r->Delta[i] - r->Sigma[i]) ;   
+
+  if (PatchTailWithAtomicLimit) PatchAtomicLimitG();    
 }
 
 void IASIAM::get_G(complex<double>* V)

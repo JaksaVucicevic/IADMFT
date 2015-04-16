@@ -19,13 +19,13 @@ GMP_FLAGS = -lgmp -std c++11
 
 # -----------  SERIAL ------------------------------------#
 
-#mpiCC = icpc #/opt/intel/Compiler/11.1/046/bin/intel64/icpc
-#FLAGS = -openmp #-static-intel
+mpiCC = icpc #/opt/intel/Compiler/11.1/046/bin/intel64/icpc
+FLAGS = -openmp -static-intel
 
 # ----------- THREADED -----------------------------------# 
 
-mpiCC = icpc #/opt/intel/Compiler/11.1/046/bin/intel64/icpc
-FLAGS =  -D_OMP -openmp  #-static
+#mpiCC = icpc #/opt/intel/Compiler/11.1/046/bin/intel64/icpc
+#FLAGS =  -D_OMP -openmp  #-static
 
 # -----------  HYBRID ------------------------------------#
 
@@ -103,7 +103,7 @@ $(OP)/GRID.o : $(SP)/GRID.cpp $(SP)/GRID.h $(SP)/routines.h
 $(OP)/nrutil.o : $(SP)/nrutil.h $(SP)/nrutil.c
 	$(Cpp) $(FLAGS) -c -o $@ $(SP)/nrutil.c
 
- numerical routines from NumRec
+# pade
 $(OP)/pade.o : $(SP)/pade.h $(SP)/pade.cpp
 	$(Cpp) $(FLAGS) -c -o $@ $(SP)/pade.cpp $(GMP_FLAGS)
 

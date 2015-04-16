@@ -39,6 +39,11 @@ int pow(int base, int exp)
   return res;
 }
 
+double cub(double x)
+{ //returns square of x
+  return x*x*x;
+}
+
 complex<double> sqr(complex<double> x)
 {
  return x*x;
@@ -54,6 +59,211 @@ complex<double> sqr(complex<double> x)
   return  sqrt(   sqr( real(x) )
                 + sqr( imag(x) ) );
 }*/
+
+//---------------------------- SPLINES -----------------------------------------------------------//
+
+double ParabolaFrom3points(double* Y, double* X)
+{
+  double x1 = X[0];
+  double x2 = X[1];
+  double x3 = X[2];
+  double y1 = Y[0];
+  double y2 = Y[1];
+  double y3 = Y[2];
+
+  double c = -( (-sqr(x2)*x3*y1 + x2*sqr(x3)*y1 + sqr(x1)*x3*y2 - x1*sqr(x3)*y2 - sqr(x1)*x2*y3 + x1*sqr(x2)*y3)
+                            / ( (x2 - x3)*(sqr(x1) - x1*x2 - x1*x3 + x2*x3) )
+              );
+
+  return c;
+}
+
+double ParabolaFrom3points(double* Y, double* X, double x)
+{
+  double x1 = X[0];
+  double x2 = X[1];
+  double x3 = X[2];
+  double y1 = Y[0];
+  double y2 = Y[1];
+  double y3 = Y[2];
+
+
+  double a = -( (-x2*y1 + x3*y1 + x1*y2 - x3*y2 - x1*y3 + x2*y3)
+                     / ( (-x1 + x2)*(x2 - x3)*(-x1 + x3) )
+              ) ;
+  double b = -( (sqr(x2)*y1 - sqr(x3)*y1 - sqr(x1)*y2 + sqr(x3)*y2 + sqr(x1)*y3 -  sqr(x2)*y3)
+                                 / ( (x1 - x2)*(x1 - x3)*(x2 - x3) )
+              ); 
+  double c = -( (-sqr(x2)*x3*y1 + x2*sqr(x3)*y1 + sqr(x1)*x3*y2 - x1*sqr(x3)*y2 - sqr(x1)*x2*y3 + x1*sqr(x2)*y3)
+                            / ( (x2 - x3)*(sqr(x1) - x1*x2 - x1*x3 + x2*x3) )
+              );
+
+  return a*sqr(x) + b*x + c;
+
+}
+
+complex<double> ParabolaFrom3points(complex<double>* Y, double* X)
+{
+  double ReY[3];
+  double ImY[3];  
+  for(int i = 0; i<3; i++)
+  {
+    ReY[i] = real(Y[i]);
+    ImY[i] = imag(Y[i]);
+  }
+
+  return complex<double>(ParabolaFrom3points(ReY, X), ParabolaFrom3points(ImY, X));
+}
+
+complex<double> ParabolaFrom3points(complex<double>* Y, double* X, double x)
+{
+  double ReY[3];
+  double ImY[3];  
+  for(int i = 0; i<3; i++)
+  {
+    ReY[i] = real(Y[i]);
+    ImY[i] = imag(Y[i]);
+  }
+
+  return complex<double>(ParabolaFrom3points(ReY, X, x), ParabolaFrom3points(ImY, X, x));
+}
+
+//--- cubic---//
+
+double CubicFrom4points(double* Y, double* X)
+{
+  double x1 = X[0];
+  double x2 = X[1];
+  double x3 = X[2];
+  double x4 = X[3];
+  double y1 = Y[0];
+  double y2 = Y[1];
+  double y3 = Y[2];
+  double y4 = Y[3];
+
+  double d = (x1 *(x1 - x3) *x3 *(x1 - x4) *(x3 - x4) *x4 *y2 + 
+      x2 *sqr(x4) *(-cub(x3) *y1 + sqr(x3) *x4 *y1 + sqr(x1) *(x1 - x4) *y3) + 
+      sqr(x1) *x2 *sqr(x3) *(-x1 + x3) *y4 + 
+      cub(x2) *(x4 *(-sqr(x3) *y1 + x3 *x4 *y1 + x1 *(x1 - x4) *y3) + 
+         x1 *x3 *(-x1 + x3) *y4) + 
+      sqr(x2) *(x1* x4 *(-sqr(x1) + sqr(x4)) *y3 + cub(x3) *(x4 *y1 - x1* y4) + 
+         x3 *(-cub(x4) *y1 + cub(x1) *y4)))/((x1 - x2) *(x1 - x3) *(x2 - 
+        x3) *(x1 - x4) *(x2 - x4) *(x3 - x4));
+
+  return d;
+
+}
+
+
+double CubicFrom4points(double* Y, double* X, double x)
+{
+  double x1 = X[0];
+  double x2 = X[1];
+  double x3 = X[2];
+  double x4 = X[3];
+  double y1 = Y[0];
+  double y2 = Y[1];
+  double y3 = Y[2];
+  double y4 = Y[3];
+
+  double a = (x1* (x1 - x4) * x4 * (y2 - y3) + 
+      sqr(x3)* (x4 *y1 + x1* y2 - x4* y2 - x1* y4) + 
+      sqr(x2)* (-x4* y1 - x1* y3 + x4* y3 + x3 *(y1 - y4) + x1* y4) + 
+      x2* (sqr(x4) *(y1 - y3) + sqr(x1) * (y3 - y4) + sqr(x3) *(-y1 + y4)) + 
+      x3* (sqr(x4) *(-y1 + y2) + sqr(x1) *(-y2 + y4)))/((x1 - x2) *(x1 - 
+        x3) *(x2 - x3) *(x1 - x4) *(x2 - x4) *(x3 - x4)); 
+ 
+  double b = (-x1 *(x1 - x4) *x4 *(x1 + x4) *(y2 - y3) + 
+      x3 *(cub(x4) *(y1 - y2) + cub(x1) *(y2 - y4)) + 
+      cub(x3) *(-x4* y1 - x1 *y2 + x4 *y2 + x1 *y4) + 
+      cub(x2) *(x4 *y1 + x1 *y3 - x4* y3 - x1 *y4 + x3 *(-y1 + y4)) + 
+      x2 *(cub(x4) *(-y1 + y3) + cub(x3) *(y1 - y4) + cub(x1) *(-y3 + y4)))/((x1 - 
+        x2) *(x1 - x3) *(x2 - x3) *(x1 - x4) *(x2 - x4) *(x3 - x4));
+
+  double c = (sqr(x1) *(x1 - x4) * sqr(x4) *(y2 - y3) + 
+      cub(x3) *(sqr(x4) *(y1 - y2) + sqr(x1) *(y2 - y4)) + 
+      sqr(x2) *(cub(x4) *(y1 - y3) + cub(x1) *(y3 - y4) + cub(x3) *(-y1 + y4)) + 
+      sqr(x3) *(cub(x4) *(-y1 + y2) + cub(x1) *(-y2 + y4)) + 
+      cub(x2) *(sqr(x4) *(-y1 + y3) + sqr(x3) *(y1 - y4) + 
+         sqr(x1) *(-y3 + y4)))/((x1 - x2) *(x1 - x3) *(x2 - x3) *(x1 - 
+        x4) *(x2 - x4) *(x3 - x4));
+
+  double d = (x1 *(x1 - x3) *x3 *(x1 - x4) *(x3 - x4) *x4 *y2 + 
+      x2 *sqr(x4) *(-cub(x3) *y1 + sqr(x3) *x4 *y1 + sqr(x1) *(x1 - x4) *y3) + 
+      sqr(x1) *x2 *sqr(x3) *(-x1 + x3) *y4 + 
+      cub(x2) *(x4 *(-sqr(x3) *y1 + x3 *x4 *y1 + x1 *(x1 - x4) *y3) + 
+         x1 *x3 *(-x1 + x3) *y4) + 
+      sqr(x2) *(x1* x4 *(-sqr(x1) + sqr(x4)) *y3 + cub(x3) *(x4 *y1 - x1* y4) + 
+         x3 *(-cub(x4) *y1 + cub(x1) *y4)))/((x1 - x2) *(x1 - x3) *(x2 - 
+        x3) *(x1 - x4) *(x2 - x4) *(x3 - x4));
+
+  return a*cub(x) + b*sqr(x) + c*x + d;
+
+
+
+
+/*
+{a -> (x1 (x1 - x4) x4 (y2 - y3) + 
+      x3^2 (x4 y1 + x1 y2 - x4 y2 - x1 y4) + 
+      x2^2 (-x4 y1 - x1 y3 + x4 y3 + x3 (y1 - y4) + x1 y4) + 
+      x2 (x4^2 (y1 - y3) + x1^2 (y3 - y4) + x3^2 (-y1 + y4)) + 
+      x3 (x4^2 (-y1 + y2) + x1^2 (-y2 + y4)))/((x1 - x2) (x1 - 
+        x3) (x2 - x3) (x1 - x4) (x2 - x4) (x3 - x4)), 
+  b -> (-x1 (x1 - x4) x4 (x1 + x4) (y2 - y3) + 
+      x3 (x4^3 (y1 - y2) + x1^3 (y2 - y4)) + 
+      x3^3 (-x4 y1 - x1 y2 + x4 y2 + x1 y4) + 
+      x2^3 (x4 y1 + x1 y3 - x4 y3 - x1 y4 + x3 (-y1 + y4)) + 
+      x2 (x4^3 (-y1 + y3) + x3^3 (y1 - y4) + x1^3 (-y3 + y4)))/((x1 - 
+        x2) (x1 - x3) (x2 - x3) (x1 - x4) (x2 - x4) (x3 - x4)), 
+  c -> (x1^2 (x1 - x4) x4^2 (y2 - y3) + 
+      x3^3 (x4^2 (y1 - y2) + x1^2 (y2 - y4)) + 
+      x2^2 (x4^3 (y1 - y3) + x1^3 (y3 - y4) + x3^3 (-y1 + y4)) + 
+      x3^2 (x4^3 (-y1 + y2) + x1^3 (-y2 + y4)) + 
+      x2^3 (x4^2 (-y1 + y3) + x3^2 (y1 - y4) + 
+         x1^2 (-y3 + y4)))/((x1 - x2) (x1 - x3) (x2 - x3) (x1 - 
+        x4) (x2 - x4) (x3 - x4)), 
+  d -> (x1 (x1 - x3) x3 (x1 - x4) (x3 - x4) x4 y2 + 
+      x2 x4^2 (-x3^3 y1 + x3^2 x4 y1 + x1^2 (x1 - x4) y3) + 
+      x1^2 x2 x3^2 (-x1 + x3) y4 + 
+      x2^3 (x4 (-x3^2 y1 + x3 x4 y1 + x1 (x1 - x4) y3) + 
+         x1 x3 (-x1 + x3) y4) + 
+      x2^2 (x1 x4 (-x1^2 + x4^2) y3 + x3^3 (x4 y1 - x1 y4) + 
+         x3 (-x4^3 y1 + x1^3 y4)))/((x1 - x2) (x1 - x3) (x2 - 
+        x3) (x1 - x4) (x2 - x4) (x3 - x4))}}
+*/
+
+}
+
+
+complex<double> CubicFrom4points(complex<double>* Y, double* X, double x)
+{
+  double ReY[4];
+  double ImY[4];  
+  for(int i = 0; i<4; i++)
+  {
+    ReY[i] = real(Y[i]);
+    ImY[i] = imag(Y[i]);
+  }
+
+  return complex<double>(CubicFrom4points(ReY, X, x), CubicFrom4points(ImY, X, x));
+}
+
+complex<double> CubicFrom4points(complex<double>* Y, double* X)
+{
+  double ReY[4];
+  double ImY[4];  
+  for(int i = 0; i<4; i++)
+  {
+    ReY[i] = real(Y[i]);
+    ImY[i] = imag(Y[i]);
+  }
+
+  return complex<double>(CubicFrom4points(ReY, X), CubicFrom4points(ImY, X));
+}
+
+
+
+//-----------------------------------------------------------------------------------------------------//
 
 void PrintFunc3D(const char* FileName, int N, complex<double>** Y, double* X)
 {
@@ -1255,6 +1465,15 @@ void InitG(int DOStype, double t, int N, complex<double>* omega, complex<double>
   }
 }
 
+complex<double> AtomicLimitSigma(double iw, double mu, double n, double U)
+{ //n=0.5 -> half filling
+  return (n * U * mu + n * U * ii * iw) / (-U + n * U + mu + ii * iw);
+}
+
+complex<double> AtomicLimitG(double iw, double mu, double n, double U)
+{ //n=0.5 -> half filling
+  return ( 1.0 - n ) / ( ii*iw + mu ) + n / ( ii*iw + mu - U );
+}
 
 
 void InitDOS(int DOStype, double t, int N, double* omega, double* dos, double U)

@@ -222,7 +222,7 @@ complex<double> IAResult::Lambda(int n, IBZ* ibz)
     iw_large[N+i]    =  omega[i];
     iw_large[N-1-i]  = -omega[i];        
     Sig_large[N+i]   =  Sigma[i];
-    Sig_large[N-1-i] = -Sigma[i];
+    Sig_large[N-1-i] = -Sigma[i]; // CONJ !!!!!!!
   }
 
   complex<double> sum = 0.0;
@@ -279,7 +279,7 @@ complex<double> IAResult::Lambda(int n, double (*v)(double))
     iw_large[N+i]    =  omega[i];
     iw_large[N-1-i]  = -omega[i];        
     Sig_large[N+i]   =  Sigma[i];
-    Sig_large[N-1-i] = -Sigma[i];
+    Sig_large[N-1-i] = -Sigma[i]; //!!!!!!!!!!!!!!!!!!! CONJ
   }
 
   int Neps = 2000;
@@ -324,6 +324,120 @@ complex<double> IAResult::Lambda(int n, double (*v)(double))
 
 
 //---------------------------------------------------------------------------//
+
+complex<double> IAResult::InternalEnergy(double T, IBZ* ibz)
+{
+  int N = iagrid->get_N();
+
+  double* iw_large = new double[2*N];
+  complex<double>* Sig_large = new complex<double>[2*N];
+  for(int i = 0; i < N; i++)
+  {
+    iw_large[N+i]    =  omega[i];
+    iw_large[N-1-i]  = -omega[i];        
+    Sig_large[N+i]   =  Sigma[i];
+    Sig_large[N-1-i] = conj(Sigma[i]);
+  }
+
+  complex<double> sum = 0.0;
+  int Nsum = 5000;
+  //for (int m=0; m<2*N-n; m++)
+  for (int m=N-1-Nsum; m<N+Nsum; m++)
+  { 
+    for(int i=0; i<ibz->get_Nx(); i++)
+    for(int j=0; j<ibz->get_Ny(); j++)
+    { 
+      double eps = ibz->epsilon[i][j];
+      ibz->summand[i][j] =            (eps + ii*iw_large[m])  
+                           / ( ii*iw_large[m] + mu - eps - Sig_large[m] )  
+                           - 1.0; 
+                  
+    }
+    sum += T*ibz->sum();
+    
+  }
+
+  delete [] iw_large;
+  delete [] Sig_large;
+
+  return sum;
+}
+
+
+
+complex<double> IAResult::InternalEnergy(double T)
+{
+  double t = 0.5; //!!!!!!!!!!!!!!!
+  int N = iagrid->get_N();
+
+  double* iw_large = new double[2*N];
+  complex<double>* Sig_large = new complex<double>[2*N];
+  for(int i = 0; i < N; i++)
+  {
+    iw_large[N+i]    =  omega[i];
+    iw_large[N-1-i]  = -omega[i];        
+    Sig_large[N+i]   =  Sigma[i];
+    Sig_large[N-1-i] = conj(Sigma[i]);
+  }
+
+  int Neps = 2000;
+  double* eps = new double[Neps];
+  for(int i = 0; i < Neps; i++) 
+    eps[i] = -2.0*t + i * 4.0 * t / ((double)(Neps-1));
+ 
+  complex<double> sum = 0.0;
+  complex<double>* g = new complex<double>[2*N];
+  for (int m=0; m<2*N; m++)
+  { for(int i = 0; i<Neps; i++)
+    {  g[i] =  DOS(DOStypes::SemiCircle, t, eps[i]) 
+               *
+               (                  (eps[i]+ii*iw_large[m])
+                  / ( ii*iw_large[m] + mu - eps[i] - Sig_large[m] ) 
+                  -1.0 
+               );
+    }   
+    sum += TrapezIntegral(Neps, g, eps);; 
+  }
+  return T*sum + mu*n;
+
+
+  delete [] iw_large;
+  delete [] Sig_large;
+  delete [] eps;
+  delete [] g;
+}
+
+complex<double> IAResult::SmartInternalEnergy(double T)
+{
+  double t = 0.5; //!!!!!!!!!!!!!!!
+  int N = iagrid->get_N();
+
+  double* iw_large = new double[2*N];
+  complex<double>* G_large = new complex<double>[2*N];
+  complex<double>* Delta_large = new complex<double>[2*N];
+  for(int i = 0; i < N; i++)
+  {
+    iw_large[N+i]    =  omega[i];
+    iw_large[N-1-i]  = -omega[i];        
+    G_large[N+i]   =  G[i];
+    G_large[N-1-i] = conj(G[i]);
+    Delta_large[N+i]   =  Delta[i];
+    Delta_large[N-1-i] = conj(Delta[i]);
+  }
+
+  complex<double> sum = 0.0;
+  for (int m=0; m<2*N; m++)
+    sum += (Delta_large[m]+ii*iw_large[m])*G_large[m] - 1.0;
+  
+  return T*sum + mu*n;
+
+
+  delete [] iw_large;
+  delete [] G_large;
+  delete [] Delta_large;
+}
+
+
 
 
 

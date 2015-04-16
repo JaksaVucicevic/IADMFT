@@ -21,6 +21,8 @@ class FFT
     //-----general stuff-----
     IAGRID* iagrid; 
    
+
+    bool HalfFilling;
     double Temp;
     int N; 
     double* tau_m;
@@ -83,6 +85,7 @@ class FFT
     void ReleaseMemory();
     void FtoT(complex<double> G_f[], complex<double> G_t[]);
     void TtoF(complex<double> G_t[], complex<double> G_f[]);
+    void SetHalfFilling(bool HalfFilling);
 };
 
 

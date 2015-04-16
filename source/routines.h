@@ -17,6 +17,7 @@ int int_sign(double x);
 double sqr(double x);
 int pow(int base, int exp);
 complex<double> sqr(complex<double> x);
+double cub(double x);
 /*double abs(double x);*/
 /*double abs(complex<double> x);*/
 
@@ -33,6 +34,17 @@ double EllipticIntegralFirstKind(double x);
 double SI(double x);
 complex<double> EllipticIntegralFirstKind(complex<double> x);
 double interpl(int N, double* Y, double* X, double x);
+
+//-----splines-----//
+double ParabolaFrom3points(double* Y, double* X, double x);
+double ParabolaFrom3points(double* Y, double* X);
+complex<double> ParabolaFrom3points(complex<double>* Y, double* X, double x);
+complex<double> ParabolaFrom3points(complex<double>* Y, double* X);
+
+double CubicFrom4points(double* Y, double* X, double x);
+double CubicFrom4points(double* Y, double* X);
+complex<double> CubicFrom4points(complex<double>* Y, double* X, double x);
+complex<double> CubicFrom4points(complex<double>* Y, double* X);
 
 //======================== IO =======================================//
 
@@ -88,6 +100,10 @@ void initCubicTBH(int Nx, int Ny, int Nz, double t, double** H);
 
 void InitG(int DOStype, double t, int N, double* omega, complex<double>* G);
 void InitG(int DOStype, double t, int N, complex<double>* omega, complex<double>* G);
+
+complex<double> AtomicLimitSigma(double iw, double mu, double n, double U);
+complex<double> AtomicLimitG(double iw, double mu, double n, double U);
+
 
 void InitDOS(int DOStype, double t, int N, double* omega, double* dos, double U=0.0);
 void InitDelta(int DOStype, 

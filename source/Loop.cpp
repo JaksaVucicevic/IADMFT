@@ -193,7 +193,12 @@ bool Loop::Run(IAResult* r)
 
      // force symmetry
      if (ForceSymmetry)
-       for (int i = 0; i < N; i++) r->Delta[i] =complex<double>( 0, imag(r->Delta[i]) );
+       for (int i = 0; i < N; i++)
+       { r->Delta[i] =complex<double>( 0, imag(r->Delta[i]) );
+         r->Sigma[i] =complex<double>( 0, imag(r->Sigma[i]) );
+         r->SOCSigma[i] =complex<double>( 0, imag(r->SOCSigma[i]) );
+         r->G[i] =complex<double>( 0, imag(r->G[i]) );
+       }
 
      printf("   Loop: mixing and checking convergence...\n");
      // now mix and check if converged
