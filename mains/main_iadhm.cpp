@@ -14,7 +14,7 @@ int main()
   //---- init non-interacting Hamiltonian ------//
 
   // square lattice 10x10
-  int size = 30;
+  int size = 5;
   int Nsites = sqr(size); 
   //int Nsites = pow(size,3); //cubic lattice
   double t=0.5; 

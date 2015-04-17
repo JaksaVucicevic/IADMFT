@@ -46,7 +46,7 @@ class IADHM: public Loop
     void SetMus( IAresArray &a, double* mus );
     //void SetNIDOS(int Nw, double* NIDOS, double* w);
 
-    //bool PHSymmetricCase;
+    bool PHSymmetricCase;
 
     //void SetUseBethe(bool UseBethe);
 

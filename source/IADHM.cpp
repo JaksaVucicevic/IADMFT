@@ -23,7 +23,7 @@ void IADHM::Defaults()
     T = 0.05;
 
     //UseBethe = true;
-    //PHSymmetricCase = true;
+    PHSymmetricCase = false;
 }
 
 IADHM::IADHM() : Loop()
@@ -81,19 +81,25 @@ void IADHM::SetUseBethe(bool UseBethe)
 void IADHM::RandomizeMus( IAresArray &a, double mu, unsigned int seed )
 {
   srand (seed);
-
+  int Nsites = a.get_N();
+  
   for(int id=0; id<Nsites; id++)
+  { printf("before --- id: %d mu: %f\n", id, a.r[id].mu ); 
     a.r[id].mu = mu - W/2.0 + W * ((double) rand()) / ((double) RAND_MAX);
+    printf("after --- id: %d mu: %f\n", id, a.r[id].mu ); 
+  }
 }
 
 void IADHM::GetMus( IAresArray &a, double* mus )
 {
+  int Nsites = a.get_N();
   for(int id=0; id<Nsites; id++)
     mus[id] = a.r[id].mu;
 }
 
 void IADHM::SetMus( IAresArray &a, double* mus )
 {
+  int Nsites = a.get_N();
   for(int id=0; id<Nsites; id++)
     a.r[id].mu = mus[id];
 }
@@ -105,7 +111,7 @@ bool IADHM::SolveSIAM()
   #pragma omp parallel for
   for(int id=0; id<Nsites; id++)
   { iasiams[id].SetUTepsilon(U,T,0.0);
-    //iasiam->PHSymmetricCase = PHSymmetricCase;
+    iasiams[id].PHSymmetricCase = PHSymmetricCase;
     iasiams[id].fft = &(fft[id]);
     iasiams[id].Run(&(a->r[id]));
   }
