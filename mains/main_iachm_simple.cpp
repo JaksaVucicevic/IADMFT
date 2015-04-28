@@ -19,13 +19,15 @@ int main()
   // set DMFT loop option
   iachm.SetBroydenOptions(false, false, 0); 
   //iachm.SetBroydenOptions(true, false, 1.0e-4); 
-  iachm.SetLoopOptions(1000, 1.0e-9);
+  iachm.SetLoopOptions(200, 1.0e-9);
   iachm.PatchTailWithAtomicLimit = false;
   iachm.AtomicCutoff = 12.0;
 
+  iachm.SetPrintOutOptions(false, false); // sth, halt on iterations
+
 
   // iterate over parameters
-  for(double T=0.01; T<0.501; T+=1000.01)
+  for(double T=0.2001; T>0.0; T-=0.05)
   {
     // the imag axis greid depends on temeprature. whenever temperature is changed, reinitialize grid
     IAGRID iagrid(N,N, T);
@@ -41,11 +43,11 @@ int main()
       if (n!=0.5) iachm.PHSymmetricCase = false;
       else 
       { iachm.PHSymmetricCase = true;
-        iachm.SetForceSymmetry(true);
+        iachm.SetForceSymmetry(false);
       }
       iaresult.n=n;
 
-      for(double U=0.2; U<4.1; U+=1000.025)
+      for(double U=0.5; U<4.0; U+=0.5)
       { char bareFN[300];
         sprintf(bareFN, ".n%.3f.U%.3f.T%.3f",n,U,T);
  
@@ -58,12 +60,12 @@ int main()
 
         // printout result
         char FN[300];
-        sprintf(FN, "IACHM%s",bareFN);
+        sprintf(FN, "IACHM%s.IPT",bareFN);
         iaresult.PrintResult(FN);
         
         // use Pade to analytically continue Green's funtion to the real axis
-        //sprintf(FN, "Gw%s",bareFN);
-        //PadeToFile(2000, iaresult.G,  iaresult.omega, FN, 600, 4.0 );
+        sprintf(FN, "Gw%s.IPT",bareFN);
+        PadeToFile(2000, iaresult.G,  iaresult.omega, FN, 600, 4.0 );
       }
 
     }

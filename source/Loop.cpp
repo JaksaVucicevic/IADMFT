@@ -30,6 +30,7 @@ void Loop::Defaults()
     HaltOnIterations = false;
     ForceSymmetry = false;
 
+    UseLambdaCalculator = false;
     LC = new LambdaCalculator;
 }
 
@@ -146,10 +147,12 @@ bool Loop::Run(IAResult* r)
   //                 2 - Suspended
 
   //-------LambdaCalculatorPrepare------//  
-  LC->ResetCounter();
-  LC->SetOmega(r->omega); 
-  LC->SetN(N);
-  LC->SetOffset(0);
+  if (UseLambdaCalculator)
+  { LC->ResetCounter();
+    LC->SetOmega(r->omega); 
+    LC->SetN(N);
+    LC->SetOffset(0);
+  }
 
 
   //Halt on first iteration if HaltOnIterations
@@ -214,8 +217,9 @@ bool Loop::Run(IAResult* r)
          } 
          else conv = 1;
      }
-
-     LC->CalculateLambda(r->Delta);
+     
+     if (UseLambdaCalculator)
+       LC->CalculateLambda(r->Delta);
      
      if ((conv==1)and(it>MIN_ITS)) { converged = true; break; }
   }
@@ -251,10 +255,12 @@ bool Loop::Run(IAresArray* a)
   //                 2 - Suspended
 
   //-------LambdaCalculatorPrepare------//  
-  LC->ResetCounter();
-  LC->SetDoContinued(false); //not applicable!
-  LC->SetN(N*Nsites);
-  LC->SetOffset(0);
+  if (UseLambdaCalculator)
+  { LC->ResetCounter();
+    LC->SetDoContinued(false); //not applicable!
+    LC->SetN(N*Nsites);
+    LC->SetOffset(0);
+  }
 
 
   //Halt on first iteration if HaltOnIterations
@@ -321,8 +327,9 @@ bool Loop::Run(IAresArray* a)
          } 
          else conv = 1;
      }
-
-     LC->CalculateLambda(a->totalDelta);
+     
+     if (UseLambdaCalculator)
+       LC->CalculateLambda(a->totalDelta);
 
      a->ReadTotalDelta();
      

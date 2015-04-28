@@ -118,6 +118,29 @@ void IAResult::PrintResult(const char* ResultFN)
   fclose(f);
 }
 
+void IAResult::PrintShort(const char* ResultFN)
+{ 
+  FILE *f;
+  f = fopen(ResultFN, "w");
+  
+  fprintf(f,"# n = %le n0 = %le mu = %le mu0=%le\n",n,n0,mu,mu0);   
+
+  int N = iagrid->get_N();
+  int i;
+  for (i=0; i<N; i++)
+  { 
+     // loop through and store the numbers into the file
+    fprintf(f, "%.15le %.15le %.15le %.15le %.15le %.15le %.15le %.15le\n", 
+                   tau[i],						//1
+                   real(G0_tau[i]),					//2
+                   real(SOCSigma_tau[i]),			 	//3
+                   omega[i],						//4 
+                   real(Sigma[i]), imag(Sigma[i]),			//5 6
+                   real(G[i]), imag(G[i]));				//7 8                                
+  }
+  fclose(f);
+}
+
 bool IAResult::ReadFromFile(const char* ResultFN)
 { 
   FILE *f;

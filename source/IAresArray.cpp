@@ -64,6 +64,15 @@ void IAresArray::Set_mu0(double mu0)
   for(int id=0; id<N; id++)
     r[id].mu0 = mu0;
 }
+
+double IAresArray::Global_n()
+{
+  double n = 0;
+  for(int id=0; id<N; id++)
+    n += r[id].n;
+  return n/((double)N);
+}
+
  
 void IAresArray::WriteTotalDelta()
 {
@@ -87,6 +96,15 @@ void IAresArray::PrintAll(const char* bareFN)
   { char FN[300];
     sprintf(FN, "%s%d", bareFN, id);
     r[id].PrintResult(FN);  
+  }
+}
+
+void IAresArray::PrintAllShort(const char* bareFN)
+{
+  for(int id=0; id<N; id++)
+  { char FN[300];
+    sprintf(FN, "%s%d", bareFN, id);
+    r[id].PrintShort(FN);  
   }
 }
 

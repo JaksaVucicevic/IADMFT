@@ -85,7 +85,7 @@ void FFT::Prepare_G_0_and_beta(complex<double> G_t[])
 {
   double sum = 0.0;
 
-  if (not HalfFilling)
+  //if (not HalfFilling)
   { G_0 = CubicFrom4points(G_t, tau_m);
     complex<double> G_aux[4];
     for(int i=0; i<4; i++) G_aux[i] = G_t[N-1-i];

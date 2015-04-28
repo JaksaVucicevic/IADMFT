@@ -98,6 +98,14 @@ complex<double> LS_get_G(int DOStype, double t, complex<double> com);
 
 void initCubicTBH(int Nx, int Ny, int Nz, double t, double** H);
 
+//----statistics---//
+
+double minimum(int N, double* X, int* index=NULL);
+double maximum(int N, double* X, int* index=NULL);
+void Histogram(int N, double* X, int Nbins, double* x, double* P, bool Logarithmic=false);
+
+//-----------------//
+
 void InitG(int DOStype, double t, int N, double* omega, complex<double>* G);
 void InitG(int DOStype, double t, int N, complex<double>* omega, complex<double>* G);
 

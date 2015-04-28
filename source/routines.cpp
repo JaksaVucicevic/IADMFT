@@ -1413,6 +1413,77 @@ void initCubicTBH(int Nx, int Ny, int Nz, double t, double** H)
   } 
 }
 
+
+//---------------------------statistics-------------------------------------------//
+
+double minimum(int N, double* X, int* index)
+{
+  double min = X[0];
+  if (index!=NULL) *index = 0;
+
+  for(int i=1; i<N; i++)
+    if (X[i]<min)
+    { min = X[i];
+      if (index!=NULL) *index = i;
+    }
+
+  return min;
+}
+
+double maximum(int N, double* X, int* index)
+{
+  double max = X[0];
+  if (index!=NULL) *index = 0;
+
+  for(int i=1; i<N; i++)
+    if (X[i]>max)
+    { max = X[i];
+      if (index!=NULL) *index = i;
+    }
+
+  return max;
+}
+
+
+void Histogram(int N, double* X, int Nbins, double* x, double* P, bool Logarithmic)
+{
+  double Xmin;
+  double Xmax;
+
+  if (Logarithmic)
+  {
+    Xmin = log10(minimum(N, X));
+    Xmax = log10(maximum(N, X));
+  }
+  else
+  {
+    Xmin = minimum(N, X);
+    Xmax = maximum(N, X);
+  }
+
+  double dX = (Xmax-Xmin)/((double)Nbins-1.0);
+  
+  for(int i=0; i<Nbins; i++)
+  { x[i] = Xmin + i*dX;
+    P[i] = 0.0;
+  }
+
+  if (Logarithmic)
+    for(int i=0; i<N; i++)
+      P[ (int)( (log10(X[i]) - Xmin + dX/2.0) / dX ) ] += 1.0/((double) N);
+  else
+    for(int i=0; i<N; i++)
+      P[ (int)( (X[i] - Xmin + dX/2.0) / dX ) ] += 1.0/((double) N);
+
+}
+
+
+
+
+
+
+
+
 //------------------------------------------------------------------------------//
 
 void get_G_from_DOS(int DOStype, double t, int N, double* omega, complex<double>* G, double eta, double U)

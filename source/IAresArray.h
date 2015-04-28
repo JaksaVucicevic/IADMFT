@@ -15,6 +15,7 @@ class IAresArray
     void Set_n0(double n0);
     void Set_mu(double mu);
     void Set_mu0(double mu0);
+    double Global_n();
     
     IAResult* r;
     complex<double>* totalDelta;
@@ -22,6 +23,7 @@ class IAresArray
     void ReadTotalDelta();
 
     void PrintAll(const char* bareFN);
+    void PrintAllShort(const char* bareFN);
     bool ReadFromFiles(const char* bareFN);
     void CopyFrom(IAresArray &a);
  

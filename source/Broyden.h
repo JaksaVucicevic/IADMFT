@@ -144,6 +144,8 @@ bool UseBroyden(int N, int MAX_ITS, double Accr,
   //turn off Broyden
   B.TurnOff();
 
+  delete [] Vinit;
+
   return b;
 }
 

@@ -26,7 +26,7 @@ void IASIAM::Defaults()
   max_tries = 2;
   UseBroydenFormu0 = true; 
 
-  PatchTailWithAtomicLimit = true;
+  PatchTailWithAtomicLimit = false;
   AtomicCutoff = 12.0;
 
   AmoebaScanStart = -2.0;
@@ -134,11 +134,14 @@ bool IASIAM::Run(IAResult* r) //output
     
     printf("==================== ====================== ========== TRYING new mu0 int!!! c = %d, mu0init = %f\n\n\n",c, mu0inits[c]);
   };
+
   if (failed) 
   {  V[0] = mu0inits[0];  
      Amoeba(Accr, V, &IASIAM::SolveSiam); 
   }
+
   delete [] V;
+
   //----------------------------//
   r->mu0 = mu0;
 

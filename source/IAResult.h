@@ -37,6 +37,7 @@ class IAResult
     complex<double>* G;		//Impurity Green's function
 
     void PrintResult(const char* FN);
+    void PrintShort(const char* ResultFN);
     bool ReadFromFile(const char* FN);
     void CopyFrom(const IAResult &r);
 

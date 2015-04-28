@@ -5,6 +5,8 @@
 #include "Input.h"
 #include "IASIAM.h"
 #include "routines.h"
+#include "Mixer.h"
+
 #include <omp.h>
 
 class IASIAM;
@@ -91,6 +93,64 @@ bool IACHM::SolveSIAM()
   else
     return iasiam->Run_CHM(r);
 }
+
+//-----------------test iterative perturbation-------------------//
+// experimental method.
+// calculates the second order diagram iteratively o include a subclass of diagrams rather than a single diagram.
+
+/*
+#include "../source/pade.h"
+bool IACHM::SolveSIAM()
+{
+  //IASIAM iasiam;
+  iasiam->SetUTepsilon(U,T,0.0);
+  iasiam->PHSymmetricCase = PHSymmetricCase;
+  iasiam->fft = &fft;
+  
+  iasiam->PatchTailWithAtomicLimit = PatchTailWithAtomicLimit;
+  iasiam->AtomicCutoff = AtomicCutoff;
+
+  for(int n=0; n<iagrid->get_N(); n++)
+    r->SOCSigma[n] = 0.0;    
+
+  complex<double>* original_Delta = new complex<double>[r->iagrid->get_N()];
+  for(int n=0; n<iagrid->get_N(); n++)
+   original_Delta[n] = r->Delta[n];     
+
+  bool err;
+  int Nipt = 100;
+  Mixer< complex<double> > mixer(iagrid->get_N(), 2, (int []) {1,0}, 1e-8);
+  mixer.Mix(r->SOCSigma);
+
+  for(int i=0; i<Nipt; i++)
+  { printf("IPT iteration: %d\n",i);
+     
+    if (i!=0)
+      for(int n=0; n<iagrid->get_N(); n++)
+        r->Delta[n] = original_Delta[n] + r->SOCSigma[n];    
+
+    if (UseFixedMuSIAMRun)
+      err = iasiam->Run(r);
+    else
+      err = iasiam->Run_CHM(r);
+
+    if (mixer.Mix(r->SOCSigma)) break; 
+
+    char FN[300];
+    sprintf(FN,"IPT.it%d",i);
+    if (i%10==0) r->PrintResult(FN);
+    //if(i==0)
+    //  PadeToFile(2000, r->G,  r->omega, "Gw", 600, 4.0 );  
+    
+  }
+  if (Nipt>1)
+  for(int n=0; n<iagrid->get_N(); n++)
+  { r->G[n] = 1.0/(ii*r->omega[n] + r->mu - original_Delta[n] - r->Sigma[n]);    
+    //r->Sigma[n] = r->Delta[n] + r->Sigma[n];     
+  }
+  return err;
+}
+*/
 
 void IACHM::CalcDelta()
 {

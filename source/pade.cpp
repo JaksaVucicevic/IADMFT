@@ -198,3 +198,20 @@ int PadeFromFile(const char* FN, int Mmax, double wmax, int N)
   delete [] Gw;
   delete [] w;
 }
+
+complex<double> pade( int M, double* iw, complex<double>* Giw, double w )
+{
+  double* ws = new double[1];
+  ws[0] = w;
+  complex<double>* Gws = new complex<double>[1];
+
+  pade( M, iw, Giw, 
+        1, ws, Gws );
+
+  complex<double> res = Gws[0];
+
+  delete [] ws;
+  delete [] Gws;
+ 
+  return res;
+}

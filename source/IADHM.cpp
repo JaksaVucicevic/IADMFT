@@ -49,7 +49,9 @@ IADHM::IADHM(const char* ParamsFN) : Loop(ParamsFN)
 
 void IADHM::ReleaseMemory()
 {
-  printf("CHM release\n");
+  printf("DHM release start\n");
+  if (fft!=NULL) delete [] fft;
+  printf("DHM release end\n");
 }
 
 IADHM::~IADHM()
@@ -83,11 +85,15 @@ void IADHM::RandomizeMus( IAresArray &a, double mu, unsigned int seed )
   srand (seed);
   int Nsites = a.get_N();
   
+  double sum = 0;
   for(int id=0; id<Nsites; id++)
-  { printf("before --- id: %d mu: %f\n", id, a.r[id].mu ); 
-    a.r[id].mu = mu - W/2.0 + W * ((double) rand()) / ((double) RAND_MAX);
-    printf("after --- id: %d mu: %f\n", id, a.r[id].mu ); 
+  {  a.r[id].mu = mu - W/2.0 + W * ((double) rand()) / ((double) RAND_MAX);
+     sum += a.r[id].mu;
   }
+  double avg_mu = sum/((double)Nsites);
+  for(int id=0; id<Nsites; id++)
+    a.r[id].mu += mu - avg_mu;
+  
 }
 
 void IADHM::GetMus( IAresArray &a, double* mus )
@@ -124,7 +130,7 @@ void IADHM::CalcDelta()
   #pragma omp parallel for 
   for(int n=0; n<N; n++)
   { 
-    printf("IADMFT::CalcDelta: working iw_%d\n",n);
+    //printf("IADMFT::CalcDelta: working iw_%d\n",n);
     complex<double>** invG = Array2D< complex<double> >(Nsites, Nsites);
 
     for(int i=0; i<Nsites; i++)

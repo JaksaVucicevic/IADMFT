@@ -21,7 +21,7 @@ MKL_FLAGS = -mkl
 #MKL_LIB_PATH =/opt/intel/mkl/lib/intel64
 #MKL_FLAGS = -Wl,--start-group  $(MKL_LIB_PATH)/libmkl_intel_lp64.a $(MKL_LIB_PATH)/libmkl_sequential.a $(MKL_LIB_PATH)/libmkl_core.a -Wl,--end-group -lm
 
-#GMP_FLAGS = -lgmp -std c++11
+GMP_FLAGS = -lgmp -std c++11
 
 
 # -----------  SERIAL ------------------------------------#
@@ -43,8 +43,8 @@ FLAGS = -openmp -static-intel
 
 LIBS =# use this if needed 
 
-all : $(OP)/$(main).o  $(OP)/IADHM.o $(OP)/IACHM.o  $(OP)/Loop.o $(OP)/IASIAM.o $(OP)/FFT.o $(OP)/LambdaCalculator.o $(OP)/IAresArray.o $(OP)/IAResult.o $(OP)/IAGRID.o $(OP)/Input.o $(OP)/Broyden.o $(SP)/Broyden.h $(OP)/IBZ.o $(SP)/Mixer.h $(OP)/routines.o $(OP)/GRID.o $(OP)/nrutil.o $(OP)/mkl_invertMatrix.o #$(OP)/pade.o 
-	$(mpiCC) $(FLAGS) -o $(RP)/$(main) $(LIBS) $(OP)/$(main).o  $(OP)/IADHM.o $(OP)/IACHM.o $(OP)/Loop.o $(OP)/IASIAM.o $(OP)/FFT.o $(OP)/LambdaCalculator.o $(OP)/IAresArray.o $(OP)/IAResult.o $(OP)/IAGRID.o $(OP)/Input.o $(OP)/Broyden.o $(OP)/IBZ.o $(OP)/routines.o $(OP)/GRID.o $(OP)/nrutil.o $(OP)/mkl_invertMatrix.o $(MKL_FLAGS) #$(OP)/pade.o $(GMP_FLAGS)
+all : $(OP)/$(main).o  $(OP)/IADHM.o $(OP)/IACHM.o  $(OP)/Loop.o $(OP)/IASIAM.o $(OP)/FFT.o $(OP)/LambdaCalculator.o $(OP)/IAresArray.o $(OP)/IAResult.o $(OP)/IAGRID.o $(OP)/Input.o $(OP)/Broyden.o $(SP)/Broyden.h $(OP)/IBZ.o $(SP)/Mixer.h $(OP)/routines.o $(OP)/GRID.o $(OP)/nrutil.o $(OP)/mkl_invertMatrix.o $(OP)/pade.o 
+	$(mpiCC) $(FLAGS) -o $(RP)/$(main) $(LIBS) $(OP)/$(main).o  $(OP)/IADHM.o $(OP)/IACHM.o $(OP)/Loop.o $(OP)/IASIAM.o $(OP)/FFT.o $(OP)/LambdaCalculator.o $(OP)/IAresArray.o $(OP)/IAResult.o $(OP)/IAGRID.o $(OP)/Input.o $(OP)/Broyden.o $(OP)/IBZ.o $(OP)/routines.o $(OP)/GRID.o $(OP)/nrutil.o $(OP)/mkl_invertMatrix.o $(MKL_FLAGS) $(OP)/pade.o $(GMP_FLAGS)
 
 # main program
 $(OP)/$(main).o : $(main).cpp $(SP)/IADHM.h $(SP)/IACHM.h $(SP)/IASIAM.h $(SP)/IAresArray.h $(SP)/IAResult.h $(SP)/IAGRID.h $(SP)/FFT.h $(SP)/pade.h

@@ -64,5 +64,6 @@ class Loop
     void SetPrintOutOptions(bool PrintIntermediate, bool HaltOnIterations);
 
     //------------------------------//
+    bool UseLambdaCalculator;
     LambdaCalculator* LC;
 };
