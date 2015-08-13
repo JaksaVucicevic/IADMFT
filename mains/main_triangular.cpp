@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <cstdio>
 #include "../source/IACHM.h"
 #include "../source/IAGRID.h"
 #include "../source/IAResult.h"
@@ -22,6 +23,7 @@ int main(int argc, char* argv [])
   iachm.SetUseBethe(false);
   iachm.SetNIDOS(Nw, NIDOS, w);
   iachm.SetBroydenOptions(false, false, 0); 
+  iachm.UseLambdaCalculator = true;
   iachm.SetLoopOptions(100, 1e-9);
   iachm.PHSymmetricCase = false;
 /*  
@@ -62,11 +64,12 @@ int main(int argc, char* argv [])
         iachm.LC->SetOutputFileName(bareFN);         
   
         iachm.Run(&iaresult);
+
         double best_lambda = iachm.LC->best_lambda;
         double last_lambda = iachm.LC->lambdas[0];
         //printf("best_lambda in main: %.3f\n",lambda);
-        /*
-        lUTFile = fopen(lUTFN,"a");    
+        
+        /*lUTFile = fopen(lUTFN,"a");    
         fprintf(lUTFile,"%.15le %.15le %.15le %.15le\n", U, T, best_lambda, last_lambda);
         fclose(lUTFile);
         */

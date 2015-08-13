@@ -20,7 +20,7 @@ int main(int argc, char* argv [])
   //---- init non-interacting Hamiltonian ------//
 
   // square lattice 10x10
-  int size = 6;
+  int size = 2;
   //int Nsites = sqr(size); 
   int Nsites = pow(size,3); //cubic lattice
   double t=0.5; 
@@ -29,7 +29,7 @@ int main(int argc, char* argv [])
   //initCubicTBH(size, size, 1, t, H0);
   initCubicTBH(size, size, size, t, H0); //cubic lattice
 
-  //PrintMatrix("H0", Nsites, Nsites, H0);
+  PrintMatrix("H0", Nsites, Nsites, H0);
   
   //--------------- StatDMFT -------------------//
  
@@ -45,7 +45,8 @@ int main(int argc, char* argv [])
   IADHM iadhm;
   iadhm.H0 = H0;
   iadhm.SetParams( U, W, T );
-
+  
+  iadhm.PatchDelta = false;
   iadhm.SetLoopOptions(300, 1e-9);
   iadhm.SetBroydenOptions(false, false, 1e-4);
 
@@ -67,7 +68,7 @@ int main(int argc, char* argv [])
   char cmd[300];
   sprintf(cmd,"mkdir %s",FN);
   system(cmd);
-  a.PrintAllShort(FN);
+  a.PrintAll(FN);
 
   //print out mus 
   double* mus = new double[Nsites];
@@ -112,7 +113,8 @@ int main(int argc, char* argv [])
   fclose(gnFile);
 
   //Pade on Green's function and Self-energy
-/*  for(int id=0; id<Nsites; id++)
+  /*#pragma omp parallel for
+  for(int id=0; id<Nsites; id++)
   { char pFN[300];
     sprintf(pFN,"%sGw.%d",FN,id);
     PadeToFile( 2000, a.r[id].G,  a.r[id].omega, pFN, 500, 3.0 );
@@ -121,7 +123,7 @@ int main(int argc, char* argv [])
 
     printf("pade, site id=%d : DONE!\n",id);
   }
-*/
+  */
   //release H0
   FreeArray2D<double>(H0, Nsites);
 

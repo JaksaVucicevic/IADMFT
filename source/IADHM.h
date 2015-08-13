@@ -48,6 +48,10 @@ class IADHM: public Loop
 
     bool PHSymmetricCase;
 
+    bool PatchTailWithAtomicLimit;
+    double AtomicCutoff;
+    bool PatchDelta;
+    
     //void SetUseBethe(bool UseBethe);
 
     double get_U() { return U; };

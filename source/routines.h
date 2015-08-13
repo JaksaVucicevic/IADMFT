@@ -6,7 +6,7 @@ using namespace std;
 //======================== CONSTANTS ===============================//
 
 const double pi = 3.14159265358979323846;
-const double e = 2.71;
+const double e =  2.71828182845904523536;
 const complex<double> ii = complex<double>(0.0,1.0);
 
 //======================= ROUTINES ==================================//
@@ -34,6 +34,7 @@ double EllipticIntegralFirstKind(double x);
 double SI(double x);
 complex<double> EllipticIntegralFirstKind(complex<double> x);
 double interpl(int N, double* Y, double* X, double x);
+complex<double> interpl(int N, complex<double>* Y, double* X, double x);
 
 //-----splines-----//
 double ParabolaFrom3points(double* Y, double* X, double x);
@@ -52,13 +53,14 @@ void PrintFunc(const char* FileName, int N, int M, double** Y, double* X);
 void PrintFunc(const char* FileName, int N, complex<double>* Y, double* X);
 void PrintFunc(const char* FileName, int N, complex<double>* Y);
 void PrintFunc(const char* FileName, int N, double* Y);
+void PrintList(const char* FileName, int N, double* Y);
 void PrintFunc(const char* FileName, int N, double* Y, double* X);
 void PrintFunc(const char* FileName, std::vector< complex<double> > Y, std::vector<double> X);
 void PrintFunc3D(const char* FileName, int N, complex<double>** Y, double* X);
 void PrintMatrix(const char* FileName, int N, int M, double** A);
 void PrintMatrix(const char* FileName, int N, int M, complex<double>** A);
 void ReadFunc(const char* FileName, int &N, int &M, double** &X);
-//void ReadFunc(const char* FileName, int &N, complex<double>* &Y, double* &X, bool PurelyReal=false);
+bool ReadFunc(const char* FileName, int &N, complex<double>* &Y, double* &X, bool PurelyReal=false);
 //void ReadFunc(const char* FileName, int &N, double* &Y, double* &X);
 void ReadFunc(const char* FileName, int N, double* Y, double* X);
 bool FileExists(const char* FN);
@@ -86,6 +88,8 @@ namespace DOStypes
   //add more if needed
 }
 
+complex<double> SemiCircleG(complex<double> z, double t=0.5);
+
 double DOS(int DOStype, double t, double om, double U=0.0);
 
 void WriteCubicDosToFile();
@@ -102,7 +106,17 @@ void initCubicTBH(int Nx, int Ny, int Nz, double t, double** H);
 
 double minimum(int N, double* X, int* index=NULL);
 double maximum(int N, double* X, int* index=NULL);
+double extremum(int M, int N, double** X, int max_or_min);
+double average(int N, double* X);
+double typical(int N, double* X);
+
 void Histogram(int N, double* X, int Nbins, double* x, double* P, bool Logarithmic=false);
+void Histogram2D(int Nseeds, int N, double** X, double** Y, int NXbins, int NYbins, double* x, double** y, double** P, bool Logarithmic=false);
+void Print2DHistogram(const char* FN, int NXbins, int NYbins, double* x, double** y, double** P);
+
+double* FindAllOccurences(int N, double* Y, double* X, double y, int &Nxs);
+double FirstDerivative(int N, double* Y, double* X, double x);
+void SmartHistogram(int N, double* Y, double* X, int Nbins, double* y, double* P, bool Logarithmic=false);
 
 //-----------------//
 

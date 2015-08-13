@@ -1,5 +1,5 @@
 # C++ compiler
-Cpp = icpc #/opt/intel/Compiler/11.1/046/bin/intel64/icpc #/opt/intel/bin/icpc
+Cpp = icpc -DMKL_ILP64#/opt/intel/Compiler/11.1/046/bin/intel64/icpc #/opt/intel/bin/icpc
 
 main =main_iachm
 
@@ -15,24 +15,30 @@ RP = ../bin
 #module load intel
 #module load intel/mkl
 
-MKL_FLAGS = -mkl
+#MKL_FLAGS = -mkl
 
 #---------ui--------#
 #MKL_LIB_PATH =/opt/intel/mkl/lib/intel64
 #MKL_FLAGS = -Wl,--start-group  $(MKL_LIB_PATH)/libmkl_intel_lp64.a $(MKL_LIB_PATH)/libmkl_sequential.a $(MKL_LIB_PATH)/libmkl_core.a -Wl,--end-group -lm
+
+MKL_ROOT = /opt/intel/composerxe/mkl
+MKL_LIBS = $(MKL_ROOT)/lib/intel64
+MKL_INCL = $(MKL_ROOT)/include
+
+MKL_FLAGS =  -Wl,--start-group  $(MKL_LIBS)/libmkl_intel_ilp64.a $(MKL_LIBS)/libmkl_sequential.a $(MKL_LIBS)/libmkl_core.a -Wl,--end-group -lpthread -lm 
 
 GMP_FLAGS = -lgmp -std c++11
 
 
 # -----------  SERIAL ------------------------------------#
 
-mpiCC = icpc #/opt/intel/Compiler/11.1/046/bin/intel64/icpc
-FLAGS = -openmp -static-intel
+#mpiCC = icpc #/opt/intel/Compiler/11.1/046/bin/intel64/icpc
+#FLAGS = -openmp -static-intel
 
 # ----------- THREADED -----------------------------------# 
 
-#mpiCC = icpc #/opt/intel/Compiler/11.1/046/bin/intel64/icpc
-#FLAGS =  -D_OMP -openmp  #-static
+mpiCC = $(Cpp) #/opt/intel/Compiler/11.1/046/bin/intel64/icpc
+FLAGS =  -D_OMP -openmp -static-intel #-static
 
 # -----------  HYBRID ------------------------------------#
 
@@ -43,16 +49,28 @@ FLAGS = -openmp -static-intel
 
 LIBS =# use this if needed 
 
-all : $(OP)/$(main).o  $(OP)/IADHM.o $(OP)/IACHM.o  $(OP)/Loop.o $(OP)/IASIAM.o $(OP)/FFT.o $(OP)/LambdaCalculator.o $(OP)/IAresArray.o $(OP)/IAResult.o $(OP)/IAGRID.o $(OP)/Input.o $(OP)/Broyden.o $(SP)/Broyden.h $(OP)/IBZ.o $(SP)/Mixer.h $(OP)/routines.o $(OP)/GRID.o $(OP)/nrutil.o $(OP)/mkl_invertMatrix.o $(OP)/pade.o 
-	$(mpiCC) $(FLAGS) -o $(RP)/$(main) $(LIBS) $(OP)/$(main).o  $(OP)/IADHM.o $(OP)/IACHM.o $(OP)/Loop.o $(OP)/IASIAM.o $(OP)/FFT.o $(OP)/LambdaCalculator.o $(OP)/IAresArray.o $(OP)/IAResult.o $(OP)/IAGRID.o $(OP)/Input.o $(OP)/Broyden.o $(OP)/IBZ.o $(OP)/routines.o $(OP)/GRID.o $(OP)/nrutil.o $(OP)/mkl_invertMatrix.o $(MKL_FLAGS) $(OP)/pade.o $(GMP_FLAGS)
+all : $(OP)/$(main).o  $(OP)/ctqmcCPA.o $(OP)/ctqmcDHM.o $(OP)/IADHM.o $(OP)/ctqmcCHM.o $(OP)/IACHM.o  $(OP)/Loop.o $(OP)/ctqmcSIAM.o $(OP)/IASIAM.o $(OP)/FFT.o $(OP)/LambdaCalculator.o $(OP)/IAresArray.o $(OP)/IAResult.o $(OP)/IAGRID.o $(OP)/Input.o $(OP)/Broyden.o $(SP)/Broyden.h $(OP)/IBZ.o $(OP)/resistorNetwork.o $(OP)/mkl_invertMatrix.o $(SP)/Mixer.h $(OP)/routines.o $(OP)/GRID.o $(OP)/nrutil.o $(OP)/pade.o 
+	$(mpiCC) $(FLAGS) -o $(RP)/$(main) $(LIBS) $(OP)/$(main).o  $(OP)/ctqmcCPA.o $(OP)/ctqmcDHM.o $(OP)/IADHM.o $(OP)/ctqmcCHM.o $(OP)/IACHM.o $(OP)/Loop.o $(OP)/ctqmcSIAM.o $(OP)/IASIAM.o $(OP)/FFT.o $(OP)/LambdaCalculator.o $(OP)/IAresArray.o $(OP)/IAResult.o $(OP)/IAGRID.o $(OP)/Input.o $(OP)/Broyden.o $(OP)/IBZ.o $(OP)/resistorNetwork.o $(OP)/mkl_invertMatrix.o $(MKL_FLAGS) $(OP)/routines.o $(OP)/GRID.o $(OP)/nrutil.o $(OP)/pade.o $(GMP_FLAGS)
 
 # main program
-$(OP)/$(main).o : $(main).cpp $(SP)/IADHM.h $(SP)/IACHM.h $(SP)/IASIAM.h $(SP)/IAresArray.h $(SP)/IAResult.h $(SP)/IAGRID.h $(SP)/FFT.h $(SP)/pade.h
+$(OP)/$(main).o : $(main).cpp $(SP)/ctqmcCPA.h $(SP)/ctqmcDHM.h $(SP)/IADHM.h $(SP)/ctqmcCHM.h $(SP)/IACHM.h $(SP)/ctqmcSIAM.h $(SP)/IASIAM.h $(SP)/IAresArray.h $(SP)/IAResult.h $(SP)/IAGRID.h $(SP)/FFT.h $(SP)/pade.h
 	$(mpiCC) $(FLAGS) -c -o $@ $(main).cpp
+
+# ctqmcCPA
+$(OP)/ctqmcCPA.o : $(SP)/ctqmcCPA.cpp $(SP)/ctqmcCPA.h $(SP)/ctqmcDHM.cpp $(SP)/ctqmcDHM.h $(SP)/Loop.h $(SP)/ctqmcSIAM.h $(SP)/IAResult.h $(SP)/IAresArray.h $(SP)/IAGRID.h $(SP)/Input.h $(SP)/routines.h $(SP)/mkl_invertMatrix.h $(SP)/mkl_invertMatrix.cpp
+	$(Cpp) $(FLAGS) -c -o $@ $(SP)/ctqmcCPA.cpp
+
+# ctqmcDHM
+$(OP)/ctqmcDHM.o : $(SP)/ctqmcDHM.cpp $(SP)/ctqmcDHM.h $(SP)/Loop.h $(SP)/ctqmcSIAM.h $(SP)/IAResult.h $(SP)/IAresArray.h $(SP)/IAGRID.h $(SP)/Input.h $(SP)/routines.h $(SP)/mkl_invertMatrix.h $(SP)/mkl_invertMatrix.cpp
+	$(Cpp) $(FLAGS) -c -o $@ $(SP)/ctqmcDHM.cpp
 
 # IADHM
 $(OP)/IADHM.o : $(SP)/IADHM.cpp $(SP)/IADHM.h $(SP)/Loop.h $(SP)/IASIAM.h $(SP)/IAResult.h $(SP)/IAresArray.h $(SP)/IAGRID.h $(SP)/Input.h $(SP)/routines.h $(SP)/mkl_invertMatrix.h $(SP)/mkl_invertMatrix.cpp
 	$(Cpp) $(FLAGS) -c -o $@ $(SP)/IADHM.cpp
+
+# ctqmcCHM
+$(OP)/ctqmcCHM.o : $(SP)/ctqmcCHM.cpp $(SP)/ctqmcCHM.h $(SP)/Loop.h $(SP)/ctqmcCHM.h $(SP)/IAResult.h $(SP)/IAGRID.h $(SP)/Broyden.h
+	$(Cpp) $(FLAGS) -c -o $@ $(SP)/ctqmcCHM.cpp
 
 # IACHM
 $(OP)/IACHM.o : $(SP)/IACHM.cpp $(SP)/IACHM.h $(SP)/Loop.h $(SP)/IASIAM.h $(SP)/IAResult.h $(SP)/IAGRID.h $(SP)/Input.h $(SP)/routines.h
@@ -61,6 +79,10 @@ $(OP)/IACHM.o : $(SP)/IACHM.cpp $(SP)/IACHM.h $(SP)/Loop.h $(SP)/IASIAM.h $(SP)/
 # Loop (base class for CHM and TMT)
 $(OP)/Loop.o : $(SP)/Loop.h $(SP)/Loop.cpp $(SP)/IAResult.h $(SP)/IAGRID.h $(SP)/Input.h $(SP)/Mixer.h $(SP)/Broyden.h
 	$(Cpp) $(FLAGS) -c -o $@ $(SP)/Loop.cpp
+
+# ctqmcSIAM
+$(OP)/ctqmcSIAM.o : $(SP)/ctqmcSIAM.cpp $(SP)/ctqmcSIAM.h $(SP)/IAResult.h $(SP)/IAGRID.h
+	$(Cpp) $(FLAGS) -c -o $@ $(SP)/ctqmcSIAM.cpp
 
 # IASIAM
 $(OP)/IASIAM.o : $(SP)/IASIAM.cpp $(SP)/IASIAM.h $(SP)/Broyden.h $(SP)/IAResult.h $(SP)/IAGRID.h $(SP)/Input.h $(SP)/routines.h
@@ -98,6 +120,14 @@ $(OP)/Broyden.o : $(SP)/Broyden.h $(SP)/Broyden.cpp
 $(OP)/IBZ.o : $(SP)/IBZ.h $(SP)/IBZ.cpp
 	$(Cpp) $(FLAGS) -c -o $@ $(SP)/IBZ.cpp
 
+# Matrix inversion from MKL
+$(OP)/mkl_invertMatrix.o : $(SP)/mkl_invertMatrix.h $(SP)/mkl_invertMatrix.cpp
+	$(Cpp) $(FLAGS) -c -o $@ $(SP)/mkl_invertMatrix.cpp 
+
+# Resistor network
+$(OP)/resistorNetwork.o : $(SP)/resistorNetwork.h $(SP)/resistorNetwork.cpp $(SP)/routines.h 
+	$(Cpp) $(FLAGS) -c -o $@ $(SP)/resistorNetwork.cpp 
+
 # contains some constants and useful numerical routines
 $(OP)/routines.o : $(SP)/routines.cpp $(SP)/routines.h 
 	$(Cpp) $(FLAGS) -c -o $@ $(SP)/routines.cpp
@@ -110,15 +140,9 @@ $(OP)/GRID.o : $(SP)/GRID.cpp $(SP)/GRID.h $(SP)/routines.h
 $(OP)/nrutil.o : $(SP)/nrutil.h $(SP)/nrutil.c
 	$(Cpp) $(FLAGS) -c -o $@ $(SP)/nrutil.c
 
-
 # pade
 $(OP)/pade.o : $(SP)/pade.h $(SP)/pade.cpp
 	$(Cpp) $(FLAGS) -c -o $@ $(SP)/pade.cpp $(GMP_FLAGS)
-
-# Matrix inversion from MKL
-$(OP)/mkl_invertMatrix.o : $(SP)/mkl_invertMatrix.h $(SP)/mkl_invertMatrix.cpp
-	$(Cpp) $(FLAGS) -c -o $@ $(SP)/mkl_invertMatrix.cpp $(MKL_FLAGS)
-
 
 # clean all object and exec files
 clean :

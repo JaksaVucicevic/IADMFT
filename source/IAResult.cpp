@@ -6,6 +6,10 @@
 #include "IAGRID.h"
 #include "routines.h"
 #include "IBZ.h"
+#include <limits>
+#include <cmath>
+#include <iostream>
+using namespace std;
 
 IAResult::IAResult()
 {
@@ -141,6 +145,48 @@ void IAResult::PrintShort(const char* ResultFN)
   fclose(f);
 }
 
+void IAResult::PrintMinimal(const char* ResultFN, double cutoff)
+{ 
+  FILE *f;
+  f = fopen(ResultFN, "w");
+  
+  fprintf(f,"# n = %le n0 = %le mu = %le mu0=%le\n",n,n0,mu,mu0);   
+
+  int N = iagrid->get_N();
+  int i;
+  for (i=0; i<N; i++)
+  { if (omega[i]>cutoff) break;
+     // loop through and store the numbers into the file
+    fprintf(f, "%.15le %.15le %.15le %.15le %.15le %.15le %.15le\n", 
+                   omega[i],						//1
+                   real(Delta[i]), imag(Delta[i]),			//2 3 
+                   real(Sigma[i]), imag(Sigma[i]),			//4 5
+                   real(G[i]), imag(G[i]));				//6 7                                
+  }
+  fclose(f);
+}
+
+void IAResult::PrintUberMinimal(const char* ResultFN, double cutoff)
+{ 
+  FILE *f;
+  f = fopen(ResultFN, "w");
+  
+  fprintf(f,"# n = %le n0 = %le mu = %le mu0=%le\n",n,n0,mu,mu0);   
+
+  int N = iagrid->get_N();
+  int i;
+  for (i=0; i<N; i++)
+  { if (omega[i]>cutoff) break;
+     // loop through and store the numbers into the file
+    fprintf(f, "%.15le %.15le %.15le %.15le %.15le\n", 
+                   omega[i],						//1
+                   real(Sigma[i]), imag(Sigma[i]),			//2 3
+                   real(G[i]), imag(G[i]));				//4 5                                
+  }
+  fclose(f);
+}
+
+
 bool IAResult::ReadFromFile(const char* ResultFN)
 { 
   FILE *f;
@@ -199,6 +245,167 @@ bool IAResult::ReadFromFile(const char* ResultFN)
   return true;
 }
 
+bool IAResult::ReadFromMinimal(const char* ResultFN)
+{ 
+  FILE *f;
+  f = fopen(ResultFN, "r");
+  if (f==NULL) { return false; }
+
+  char rstLine[1000];
+  fgets ( rstLine, 1000, f );
+
+  char * pch;
+  printf ("rstline: %s\n",rstLine);
+  pch = strtok (rstLine,"=");
+  int counter=1;
+  while (pch != NULL)
+  { 
+    switch (counter)
+    {
+      case 2: n=atof(pch); printf ("%d: %s, atof: %le \n",counter,pch,n); break;
+      case 3: n0=atof(pch); printf ("%d: %s, atof: %le \n",counter,pch,n0); break;
+      case 4: mu=atof(pch); printf ("%d: %s, atof: %le \n",counter,pch,mu); break;
+      case 5: mu0=atof(pch); printf ("%d: %s, atof: %le \n",counter,pch,mu0); break;
+    }
+          
+    pch = strtok (NULL, "=");
+    counter++; 
+  }
+
+  int N = iagrid->get_N();
+  int i;
+  for (i=0; i<N; i++)
+  { double o, rS, iS, rG, iG, rD, iD; 
+     // loop through and store the numbers into the file
+    if (feof(f)) 
+      o = rS = iS = rG = iG = rD = iD = std::numeric_limits<double>::quiet_NaN();
+    else       
+      fscanf(f, "%le %le %le %le %le %le %le\n", 
+                 &o,				//1
+                 &rD, &iD,			//2 3
+                 &rS, &iS,			//4 5
+                 &rG, &iG);			//6 7        
+
+    tau[i] =  std::numeric_limits<double>::quiet_NaN();
+    G0_tau[i] =  std::numeric_limits<double>::quiet_NaN(); 				
+    SOCSigma_tau[i] = std::numeric_limits<double>::quiet_NaN();
+    omega[i] = o;
+    Delta[i] = complex<double>(rD,iD);			
+    G0[i] =  std::numeric_limits<double>::quiet_NaN(); 				
+    SOCSigma[i] =  std::numeric_limits<double>::quiet_NaN(); 	
+    Sigma[i] = complex<double>(rS,iS);			
+    G[i] = complex<double>(rG,iG);			
+  }
+  fclose(f);
+  
+  return true;
+}
+
+bool IAResult::ReadFromUberMinimal(const char* ResultFN)
+{ 
+  FILE *f;
+  f = fopen(ResultFN, "r");
+  if (f==NULL) { return false; }
+
+  char rstLine[1000];
+  fgets ( rstLine, 1000, f );
+
+  char * pch;
+  printf ("rstline: %s\n",rstLine);
+  pch = strtok (rstLine,"=");
+  int counter=1;
+  while (pch != NULL)
+  { 
+    switch (counter)
+    {
+      case 2: n=atof(pch); printf ("%d: %s, atof: %le \n",counter,pch,n); break;
+      case 3: n0=atof(pch); printf ("%d: %s, atof: %le \n",counter,pch,n0); break;
+      case 4: mu=atof(pch); printf ("%d: %s, atof: %le \n",counter,pch,mu); break;
+      case 5: mu0=atof(pch); printf ("%d: %s, atof: %le \n",counter,pch,mu0); break;
+    }
+          
+    pch = strtok (NULL, "=");
+    counter++; 
+  }
+
+  int N = iagrid->get_N();
+  int i;
+  for (i=0; i<N; i++)
+  { double o, rS, iS, rG, iG; 
+     // loop through and store the numbers into the file
+    if (feof(f)) 
+      o = rS = iS = rG = iG = std::numeric_limits<double>::quiet_NaN();
+    else       
+      fscanf(f, "%le %le %le %le %le\n", 
+                 &o,				//1
+                 &rS, &iS,			//2 3
+                 &rG, &iG);			//4 5        
+
+    tau[i] =  std::numeric_limits<double>::quiet_NaN();
+    G0_tau[i] =  std::numeric_limits<double>::quiet_NaN(); 				
+    SOCSigma_tau[i] = std::numeric_limits<double>::quiet_NaN();
+    omega[i] = o;
+    Delta[i] =  std::numeric_limits<double>::quiet_NaN();			
+    G0[i] =  std::numeric_limits<double>::quiet_NaN(); 				
+    SOCSigma[i] =  std::numeric_limits<double>::quiet_NaN(); 	
+    Sigma[i] = complex<double>(rS,iS);			
+    G[i] = complex<double>(rG,iG);			
+  }
+  fclose(f);
+  
+  return true;
+}
+
+/*
+bool IAResult::ReadFromFile(const char* ResultFN, int Ncolumns, 
+                            int Nrqs, const double* rqs[], const int ris[], 
+                            int Ncqs, const complex<double>* cqs [], const int cis[])
+{ 
+  FILE *f;
+  f = fopen(ResultFN, "r");
+  if (f==NULL) { return false; }
+
+  char rstLine[1000];
+  fgets ( rstLine, 1000, f );
+
+  char * pch;
+  printf ("rstline: %s\n",rstLine);
+  pch = strtok (rstLine,"=");
+  int counter=1;
+  while (pch != NULL)
+  { 
+    switch (counter)
+    {
+      case 2: n=atof(pch); printf ("%d: %s, atof: %le \n",counter,pch,n); break;
+      case 3: n0=atof(pch); printf ("%d: %s, atof: %le \n",counter,pch,n0); break;
+      case 4: mu=atof(pch); printf ("%d: %s, atof: %le \n",counter,pch,mu); break;
+      case 5: mu0=atof(pch); printf ("%d: %s, atof: %le \n",counter,pch,mu0); break;
+    }
+          
+    pch = strtok (NULL, "=");
+    counter++; 
+  }
+
+  int N = iagrid->get_N();
+  int i;
+  for (i=0; i<N; i++)
+  { 
+    for(int j=0; j>Ncolumns; j++)
+    { double dum; 
+      fscanf(f, "%le", &dum);
+      for(int k=0; k<Nrqs; k++)
+        if (ris[k]==j) rqs[k][i]=dum;
+      for(int k=0; k<Ncqs; k++)
+        if (cis[k]==j) cqs[k][i]=dum;       
+      for(int k=0; k<Ncqs; k++)
+        if (cis[k]==j-1) cqs[k][i]+=ii*dum;
+    }
+  }
+  fclose(f);
+  
+  return true;
+}
+*/
 
 void IAResult::CopyFrom(const IAResult &r)
 {
@@ -245,11 +452,11 @@ complex<double> IAResult::Lambda(int n, IBZ* ibz)
     iw_large[N+i]    =  omega[i];
     iw_large[N-1-i]  = -omega[i];        
     Sig_large[N+i]   =  Sigma[i];
-    Sig_large[N-1-i] = -Sigma[i]; // CONJ !!!!!!!
+    Sig_large[N-1-i] = conj(Sigma[i]); // CONJ: G(iw)=G*(-iw) 
   }
 
   complex<double> sum = 0.0;
-  int Nsum = 500;
+  int Nsum = 200;
   //for (int m=0; m<2*N-n; m++)
   for (int m=N-1-Nsum; m<N+Nsum; m++)
   { 
@@ -269,13 +476,13 @@ complex<double> IAResult::Lambda(int n, IBZ* ibz)
                 );
     }
     sum += ibz->sum();
-      if ((m==N)and(n==1)) 
+    /*  if ((m==N)and(n==1)) 
       { 
         char FN[300];
         sprintf(FN,"summand.n%d",n);
         ibz->PrintToFile(FN);
       }
-    
+    */
   }
 
   delete [] iw_large;
@@ -302,7 +509,7 @@ complex<double> IAResult::Lambda(int n, double (*v)(double))
     iw_large[N+i]    =  omega[i];
     iw_large[N-1-i]  = -omega[i];        
     Sig_large[N+i]   =  Sigma[i];
-    Sig_large[N-1-i] = -Sigma[i]; //!!!!!!!!!!!!!!!!!!! CONJ
+    Sig_large[N-1-i] = conj(Sigma[i]); //!!!!!!!!!!!!!!!!!!! CONJ
   }
 
   int Neps = 2000;
@@ -313,7 +520,9 @@ complex<double> IAResult::Lambda(int n, double (*v)(double))
   complex<double>* summand = new complex<double>[2*N];
   complex<double> sum = 0.0;
   for (int m=0; m<2*N-n; m++)
-  { for(int i =0; i<Neps; i++)
+  { 
+    //#pragma omp parallel for
+    for(int i =0; i<Neps; i++)
     {  g[i] = DOS(DOStypes::SemiCircle, t, eps[i]) 
               * ( (v!=NULL) ? v(eps[i]) : 1.0 ) 
               * 2.0 
@@ -331,17 +540,20 @@ complex<double> IAResult::Lambda(int n, double (*v)(double))
     summand[m] = TrapezIntegral(Neps, g, eps);
     sum += summand[m]; //(1.0/nu) * Temp 
   }
-  return sum;
-
-  char summandFN[200];
-  sprintf(summandFN,"summand.n%.4d",n);
-  PrintFunc(summandFN,N,summand,omega); 
 
   delete [] iw_large;
   delete [] Sig_large;
   delete [] summand;
   delete [] eps;
   delete [] g;
+
+  return sum;
+
+/*  char summandFN[200];
+  sprintf(summandFN,"summand.n%.4d",n);
+  PrintFunc(summandFN,N,summand,omega); 
+*/
+
 }
 
 
@@ -451,19 +663,39 @@ complex<double> IAResult::SmartInternalEnergy(double T)
   complex<double> sum = 0.0;
   for (int m=0; m<2*N; m++)
     sum += (Delta_large[m]+ii*iw_large[m])*G_large[m] - 1.0;
-  
-  return T*sum + mu*n;
-
 
   delete [] iw_large;
   delete [] G_large;
   delete [] Delta_large;
+
+  
+  return T*sum + mu*n;
 }
 
+void IAResult::PatchAtomicLimitSigma(double AtomicCutoff, double U)
+{
+  for (int i=0; i<iagrid->get_N(); i++) 
+    if (omega[i]>AtomicCutoff) Sigma[i] = AtomicLimitSigma(omega[i], mu, n, U);
+}
 
+void IAResult::PatchAtomicLimitG(double AtomicCutoff, double U)
+{
+  for (int i=0; i<iagrid->get_N(); i++) 
+    if (omega[i]>AtomicCutoff) G[i] = AtomicLimitG(omega[i], mu, n, U);
+}
 
+void IAResult::PatchDelta(double AtomicCutoff)
+{
+  int i;
+  for (i=0; i<iagrid->get_N(); i++) 
+    if (omega[i]>AtomicCutoff) break;
+  
+  double A = real(Delta[i])*sqr(omega[i]);
+  double B = imag(Delta[i])*omega[i];
 
-
+  for (int j=i+1; j<iagrid->get_N(); j++) 
+    Delta[j] = complex<double>(A/sqr(omega[j]),B/omega[j]);
+}
 
 /*
 void IAResult::InitG(complex<double>* G, double a, double t, int type)

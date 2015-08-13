@@ -1,5 +1,7 @@
 #include <cstdlib>
 //#include "routines.h" 
+#include <iostream>
+#include <string>
 
 template <class T> //T may be  float, double, complex<double>
 class Mixer
@@ -30,6 +32,9 @@ class Mixer
     bool Mix(T* Solution); //returns true if solutions converged
    
     double CurrentDiff;
+    bool PrintDiffs;
+    string DiffsFN;
+
      //initializes Mixer for M N-long Solutions that will be mixed with Coefs until Accr reached
     void Initialize(int N, int M, const int * Coefs, double Accr);
     void Reset();
@@ -40,6 +45,8 @@ Mixer<T>::Mixer(int N, int M, const int * Coefs, double Accr)
 {
   Initialized = false;
   Initialize(N, M, Coefs, Accr);
+  PrintDiffs=false;
+  DiffsFN = "diffs"; 
 }
 
 template <class T>
@@ -138,6 +145,10 @@ bool Mixer<T>::Mix(T* Solution)
   }
   else 
   {  AddSolution(Solution);
+     if (PrintDiffs)
+     { FILE* f = fopen(DiffsFN.c_str(),"w");
+       fclose(f);
+     }     
      printf("Mixer:: First iteration - nothing to mix.\n");
   }
   return b;
@@ -153,11 +164,13 @@ bool Mixer<T>::CheckConvergence()
   CurrentDiff = MaxDiff;
   printf("--- Mixer: Diff[%d] = %le ---\n", Counter, MaxDiff);
 
-/*
-  FILE* diffsFile = fopen("diffs","a");
-  fprintf(diffsFile,"%le\n", MaxDiff);
-  fclose(diffsFile);
-*/
+  if (PrintDiffs)
+  { printf("--- Mixer: printing current diff to %s\n", DiffsFN.c_str());
+    FILE* f = fopen(DiffsFN.c_str(),"a");
+    fprintf(f,"%le\n", MaxDiff);
+    fclose(f);
+  }
+
   if (MaxDiff < Accr) printf("--- Mixer: CONVERGED !!!\n");
   return  (MaxDiff < Accr);
 }

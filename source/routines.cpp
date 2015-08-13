@@ -7,6 +7,7 @@
 #include <cmath>
 #include <cstdlib>
 #include "nrutil.h"
+#include <limits>
 // #include "mkl_types.h"
 //#define MKL_Complex16 std::complex<double>
 //#include "mkl.h"
@@ -319,6 +320,14 @@ void PrintFunc(const char* FileName, int N, double* Y)
   fclose(f);
 }
 
+void PrintList(const char* FileName, int N, double* Y)
+{
+  FILE *f;
+  f = fopen(FileName, "w");
+  for (int i=0; i<N; i++)
+    fprintf(f,"%.5f ", Y[i]);
+  fclose(f);
+}
 
 void PrintFunc(const char* FileName, int N, double* Y, double* X)
 {
@@ -369,6 +378,26 @@ void PrintMatrix(const char* FileName, int N, int M, complex<double>** A)
   fclose(f);
 }
 
+void GetPrelines(const char* FileName, int &p)
+{
+  FILE *f;
+  f = fopen(FileName, "r");
+  if (f==NULL) perror ("Error opening file");
+
+  //----count prelines----//
+  int i=0;
+  char str[100000];
+  while (!feof(f))
+  { fgets ( str, 100000, f );
+    if (str[0]!='#') break;
+    i++;
+  }
+  p=i;
+
+  //---close file-----//
+  fclose(f);
+}
+
 
 void GetDimensions(const char* FileName, int &N, int &M)
 {
@@ -381,8 +410,8 @@ void GetDimensions(const char* FileName, int &N, int &M)
   int i=0;
   char str[100000];
   while (!feof(f))
-  {
-    fgets ( str, 100000, f );
+  { fgets ( str, 100000, f );
+    if (str[0]=='#') continue;
     i++;
   }
   N=i-1;
@@ -402,33 +431,45 @@ void GetDimensions(const char* FileName, int &N, int &M)
 
 void ReadFunc(const char* FileName, int &N, int &M, double** &X)
 {
- GetDimensions(FileName, N, M);
- printf("N: %d M: %d\n", N, M);
+  GetDimensions(FileName, N, M);
 
- X = new double*[M];
- for (int i=0; i<M; i++)
-   X[i] = new double[N];
+  int p;
+  GetPrelines(FileName, p);
 
- FILE *f;
- f = fopen(FileName, "r");
+  printf("N: %d M: %d p: %d\n", N, M, p);
 
- for (int i=0; i<N; i++)
-   for (int j=0; j<M; j++)
-   { double Dummy;
-     fscanf(f, "%le", &Dummy);
-     X[j][i]=Dummy;
-   }
- fclose(f);
- printf("uchito fajl");
+  X = new double*[M];
+  for (int i=0; i<M; i++)
+    X[i] = new double[N];
+
+  FILE *f;
+  f = fopen(FileName, "r");
+
+  char str[100000];
+  for (int i=0; i<p; i++)
+    fgets ( str, 100000, f );
+
+  for (int i=0; i<N; i++)
+    for (int j=0; j<M; j++)
+    { double Dummy;
+      fscanf(f, "%le", &Dummy);
+      X[j][i]=Dummy;
+    }
+  fclose(f);
+  printf("uchito fajl\n");
 }
 
-void ReadFunc(const char* FileName, int &N, complex<double>* &Y, double* &X, bool PurelyReal)
+
+
+
+
+bool ReadFunc(const char* FileName, int &N, complex<double>* &Y, double* &X, bool PurelyReal)
 { // reads file formatted like 
   //  X  ReY(X) ImY(X)
   //----open file---//
   FILE *f;
   f = fopen(FileName, "r");
-  if (f==NULL) perror ("Error opening file");
+  if (f==NULL) return false;
   
   //----count rows----//
   int i=0;
@@ -468,6 +509,8 @@ void ReadFunc(const char* FileName, int &N, complex<double>* &Y, double* &X, boo
     Y[i]=complex<double>(Dummy2, (PurelyReal) ? 0.0 : Dummy3);
   }
   fclose(f);
+
+  return true;
 }
 
 void ReadFunc(const char* FileName, int &N, double* &Y, double* &X)
@@ -519,8 +562,8 @@ void ReadFunc(const char* FileName, int &N, double* &Y, double* &X)
 }
 
 void ReadFunc(const char* FileName, int N, double* Y, double* X)
-{ // reads file formatted like 
-  //  X  ReY(X) ImY(X)
+{ // reads file formatted like, no # prelines allowed
+  //  X  Y
   //----open file---//
   FILE *f;
   f = fopen(FileName, "r");
@@ -536,6 +579,7 @@ void ReadFunc(const char* FileName, int N, double* Y, double* X)
   }
   fclose(f);
 }
+
 
 bool FileExists(const char* FN){ FILE* f = fopen(FN,"r"); if (f==NULL) return false; else { fclose(f); return true; } };
 //---------------- vectors and matrices--------------------//
@@ -1254,6 +1298,14 @@ double SI(double x)
 
 //-------------------- DOSes and Init Deltas -----------------//
 
+complex<double> SemiCircleG(complex<double> z, double t)
+{
+  return 2.0 
+         / ( z +      sign(real(z)) * real( sqrt(z*z - 4.0*sqr(t)) )
+               + ii * sign(imag(z)) * imag( sqrt(z*z - 4.0*sqr(t)) )
+           );
+}
+
 double DOS(int DOStype, double t, double om, double U)
 {
   switch (DOStype)
@@ -1444,6 +1496,40 @@ double maximum(int N, double* X, int* index)
   return max;
 }
 
+double extremum(int M, int N, double** X, int max_or_min)
+{ //max -> max_or_min>0
+  //min -> max_or_min<0
+  //X is MxN
+  double extr = X[0][0];
+
+  for(int i=0; i<M; i++)
+  for(int j=0; j<N; j++)
+    if ( ((max_or_min>0)and(X[i][j]>extr))
+         or
+         ((max_or_min<0)and(X[i][j]<extr))
+       )
+      extr = X[i][j];   
+
+  return extr;
+}
+
+double average(int N, double* X)
+{
+  double sum=0.0;
+  for(int i=0; i<N; i++)
+    sum+=X[i];
+   
+  return sum/(double) N;
+}
+
+double typical(int N, double* X)
+{
+  double sum=0.0;
+  for(int i=0; i<N; i++)
+    sum+=log(X[i]);
+   
+  return exp(sum/(double) N);
+}
 
 void Histogram(int N, double* X, int Nbins, double* x, double* P, bool Logarithmic)
 {
@@ -1470,18 +1556,187 @@ void Histogram(int N, double* X, int Nbins, double* x, double* P, bool Logarithm
 
   if (Logarithmic)
     for(int i=0; i<N; i++)
-      P[ (int)( (log10(X[i]) - Xmin + dX/2.0) / dX ) ] += 1.0/((double) N);
+    { int j = (int)( (log10(X[i]) - Xmin + dX/2.0) / dX );
+      if (j>N-1) j=N-1;
+      if (j<0) { j=0; printf("j<0!!! xmin: %.15le xmax: %.15le X[i]: %.15le float j: %.15le\n", Xmin, Xmax, log10(X[i]), (log10(X[i]) - Xmin + dX/2.0) / dX ); }
+       P[ j ] += 1.0/((double) N);
+    }
   else
     for(int i=0; i<N; i++)
-      P[ (int)( (X[i] - Xmin + dX/2.0) / dX ) ] += 1.0/((double) N);
+    { int j = (int)( (X[i] - Xmin + dX/2.0) / dX );
+      if (j>N-1) j=N-1;
+      if (j<0) { j=0; printf("j<0!!! xmin: %.15le xmax: %.15le X[i]: %.15le float j: %.15le\n", Xmin, Xmax, X[i], (X[i] - Xmin + dX/2.0) / dX ); }
+      P[ j ] += 1.0/((double) N);
+    }
 
 }
 
 
+void Histogram2D(int Nseeds, int N, double** X, double** Y, int NXbins, int NYbins, double* x, double** y, double** P, bool Logarithmic)
+{ // takes Nseeds realizations of a stochastical Y(X) dependence, at separate X grids.
+  // For each X bin, we get a histogram P(X; Y). As Ys may come in different ranges in each X bin,
+  // y contains Y bins, for each X bin (which are given in x).
+
+  // X and Y are Nseeds x N
+  // x is NXbins
+  // y and P are NXbins x NYbins
+
+  double xmin = extremum(Nseeds, N, X, -1);
+  double xmax = extremum(Nseeds, N, X, +1);;
+
+  double dx = (xmax-xmin)/((double)NXbins);
+  
+  for(int i=0; i<NXbins; i++)
+    x[i] = xmin + i*dx;
+  
+  for(int i=0; i<NXbins; i++)
+  { 
+    double* Ys = new double[Nseeds*N];
+    int counter = 0;
+    for(int seed = 0; seed < Nseeds; seed++)
+    for(int j = 0; j < N; j++)
+      if ( (X[seed][j]>=x[i])and(X[seed][j]<x[i]+dx) )
+      {
+        Ys[counter] = Y[seed][j];
+        counter++;
+      }  
+    Histogram(counter, Ys, NYbins, y[i], P[i], Logarithmic);
+    delete [] Ys;
+  }
+}
+
+void Print2DHistogram(const char* FN, int NXbins, int NYbins, double* x, double** y, double** P)
+{
+  FILE* f = fopen(FN,"w");
+  for(int i=0; i<NXbins; i++)
+  { for(int j=0; j<NYbins; j++)
+      fprintf(f,"%.15le %.15le %.15le\n",x[i],y[i][j],P[i][j]);
+    fprintf(f,"\n"); 
+  }
+  fclose(f);
+}
 
 
+double* FindAllOccurences(int N, double* Y, double* X, double y, int &Nxs)
+{ //maximally 1000 occurancies!
+  double XS[1000];
+ 
+  int counter = 0;
+  for(int i=0; i<N-1; i++)
+    if ( ((Y[i]>y)and(Y[i+1]<y))
+         or
+         ((Y[i]<y)and(Y[i+1]>y))
+       ) 
+    { double dx = X[i+1] - X[i];
+      double dy = Y[i+1] - Y[i];
+      double c = y - Y[i]; 
+      double a = c*dx/dy;
+
+//          /|Y[i+1]
+//   y____ / | 
+//        /| |
+//       / |c|dy
+//      /  | |
+//     /_a_|_|Y[i]
+// X[i]  dx   X[i+1]
+
+      XS[counter] = X[i]+a; 
+      counter++;    
+    }
+  for(int i=0; i<N; i++)
+    if (Y[i]==y)      
+    { XS[counter] = X[i];
+      counter++;     
+    }
+  
+  if (counter>0)
+  { Nxs = counter;
+    double* xs = new double[counter];
+    for(int i=0; i<counter; i++)
+      xs[i] = XS[i];
+    return xs;
+  }
+  else
+  { Nxs = 0;
+    return NULL;
+  }
+}
+
+double FirstDerivative(int N, double* Y, double* X, double x)
+{ //right derivative, except if x=X[N-1] - then left derivative. If out of X range, quiet nan
+  for(int i=0; i<N-1; i++)
+    if ( ((X[i]>=x)and(X[i+1]<x))
+         or
+         ((X[i]<=x)and(X[i+1]>x))
+       )
+    { if ((X[i]==x)and(i>0))
+        return (Y[i+1]-Y[i-1])/(X[i+1]-X[i-1]);
+      else
+        return (Y[i+1]-Y[i])/(X[i+1]-X[i]);
+    }
+  if (X[N-1]==x)
+    return (Y[N-1]-Y[N-2])/(X[N-1]-X[N-2]);
+
+  return std::numeric_limits<double>::quiet_NaN();
+}
 
 
+void SmartHistogram(int N, double* Y, double* X, int Nbins, double* y, double* P, bool Logarithmic)
+{ //takes function Y(X), makes histogram P(Y) in Nbins values of Y which get stored in y. 
+  //uses rho(y) = sum_x 1/(dy/dx)|_x delta(y(x)-y) 
+  
+  double Ymin;
+  double Ymax;
+
+  Ymin = minimum(N, Y);
+  Ymax = maximum(N, Y);
+  
+  if (Logarithmic) 
+  { Ymin = log10(Ymin);
+    Ymax = log10(Ymax);
+  }
+  
+  double dY = (Ymax-Ymin)/((double)Nbins-1.0);
+  
+  for(int i=0; i<Nbins; i++)
+  { y[i] = Ymin + i*dY;
+    P[i] = 0.0;
+  }
+
+  if (Logarithmic)
+  {
+    double* LogY = new double[N];
+    for(int i=0; i<N; i++) LogY[i] = log10(Y[i]); 
+  
+    for(int i=0; i<Nbins; i++)
+    { int Nxs; 
+      double* xs = FindAllOccurences(N, LogY, X, y[i], Nxs);
+      double sum = 0.0;
+      for(int j=0; j<Nxs; j++)
+        sum += 1.0/abs(FirstDerivative(N, LogY, X, xs[j]));
+      P[i] = sum;
+      if (Nxs>0) delete [] xs;
+    } 
+
+    delete [] LogY;
+  }
+  else
+    for(int i=0; i<Nbins; i++)
+    { int Nxs; 
+      double* xs = FindAllOccurences(N, Y, X, y[i], Nxs);
+      double sum = 0.0;
+      for(int j=0; j<Nxs; j++)
+        sum += 1.0/abs(FirstDerivative(N, Y, X, xs[j]));
+      P[i] = sum;
+      if (Nxs>0) delete [] xs;
+    } 
+
+  double norm = 0.0;
+  for(int i=0; i<Nbins; i++)
+    norm+=P[i];
+  for(int i=0; i<Nbins; i++)
+    P[i]/=norm;
+}
 
 
 //------------------------------------------------------------------------------//

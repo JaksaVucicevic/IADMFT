@@ -63,9 +63,6 @@ class IASIAM
     //complex<double> AtomicLimitG(int i);
 
 
-    void PatchAtomicLimitSigma();
-    void PatchAtomicLimitG();
-
     //--- IASIAM solver ---//
     void SolveSiam(complex<double>* V);
     void Amoeba(double accr, complex<double>* V, void (IASIAM::*f)(complex<double>*));	//amoeba method for mu0 search.

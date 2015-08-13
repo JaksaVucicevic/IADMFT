@@ -1,4 +1,7 @@
 #include <iostream>
+#include <string>
+
+using namespace std;
 
 class IAResult;
 class IAresArray;
@@ -36,12 +39,7 @@ class Loop
     int MAX_ITS;
     int MIN_ITS;
     double Accr;
-
-    //---- PrintOut/Debugging optins----//
-    bool PrintIntermediate;
-    bool HaltOnIterations;
-    bool ForceSymmetry;
-    
+  
     //---- Functions to be overridden---//
     virtual bool SolveSIAM();
     virtual void CalcDelta();
@@ -56,12 +54,19 @@ class Loop
     bool Run(IAResult* r);
     bool Run(IAresArray* a);
     
-    void SetForceSymmetry(bool FS);
     void SetGrid(IAGRID* g);
     void SetMixerOptions(int NtoMix, const int * Coefs);
     void SetBroydenOptions(bool UseBroyden, bool ForceBroyden, double BroydenStartDiff);
     void SetLoopOptions(int MAX_ITS, double Accr);
-    void SetPrintOutOptions(bool PrintIntermediate, bool HaltOnIterations);
+
+    //---- PrintOut/Debugging optins----//
+    string intermediateName;
+    int PrintIntermediate;
+    bool PrintDiffs;
+    double IntermediateCutoff;
+    bool HaltOnIterations;
+
+    bool ForceSymmetry; 
 
     //------------------------------//
     bool UseLambdaCalculator;

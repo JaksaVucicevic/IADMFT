@@ -6,6 +6,7 @@ namespace IBZtypes
 {
   const int SquareLattice = 0;
   const int TriangularLattice = 1;
+  const int CubicLattice = 2;
 }
 
 class IBZ

@@ -9,8 +9,10 @@
 
 void Loop::Defaults()
 {
+    
+
     printf("\n\n\n\nLOOP DEFAULTS <<<<<<<<<<<<<<<<<<<<\n\n");
-    UseBroyden = true;
+    UseBroyden = false;
     ForceBroyden = false;
     BroydenStartDiff =5e-3;
 
@@ -26,9 +28,13 @@ void Loop::Defaults()
     Accr = 5e-5;
 
     //---- PrintOut/Debugging optins----//
-    PrintIntermediate = false;
+    PrintIntermediate = 0;
+    IntermediateCutoff = 10.0;
+    PrintDiffs = false;
+    
     HaltOnIterations = false;
     ForceSymmetry = false;
+    intermediateName = "intermediate";
 
     UseLambdaCalculator = false;
     LC = new LambdaCalculator;
@@ -109,7 +115,7 @@ void Loop::SetLoopOptions(int MAX_ITS, double Accr)
   this->MAX_ITS = MAX_ITS;
   this->Accr = Accr;
 }
-
+/*
 void Loop::SetPrintOutOptions(bool PrintIntermediate, bool HaltOnIterations)
 {
   this->PrintIntermediate = PrintIntermediate;
@@ -122,7 +128,7 @@ void Loop::SetForceSymmetry(bool FS)
   ForceSymmetry = FS;
 
 }
-
+*/
 //=======================================================================================//
 // Run with single result
 //=======================================================================================//
@@ -136,6 +142,8 @@ bool Loop::Run(IAResult* r)
   //Initialize mixer
   printf("|||||||||||||||||||||||||| LOOP:: C0 = %d, C1 = %d\n",Coefs[0],Coefs[1]);
   Mixer< complex<double> > mixer(N, NtoMix, Coefs, (UseBroyden) ? BroydenStartDiff : Accr);
+  mixer.DiffsFN = string("diffs.")+intermediateName;
+  mixer.PrintDiffs = PrintDiffs;
   mixer.Mix(r->Delta);
 
   //initialize broyden
@@ -177,11 +185,12 @@ bool Loop::Run(IAResult* r)
      }
 
      //print out intermediate results
-     if (PrintIntermediate)
-     {  char FN[50];
-        sprintf(FN,"intermediate.%d", it);
+     if (PrintIntermediate!=0)
+     if (Iteration%PrintIntermediate==0)
+     {  char FN[300];
+        sprintf(FN,"%s.it%d", intermediateName.c_str(), it);
         //sprintf(FN,"intermediate");
-        r->PrintResult(FN);
+        r->PrintMinimal(FN, IntermediateCutoff);
      }
 
      //--- self-consistency ---// 
@@ -230,7 +239,7 @@ bool Loop::Run(IAResult* r)
 }
 
 //=======================================================================================//
-// Run with IAresArray - applicable for StatDMFT
+// Run with IAresArray - applicable for StatDMFT (DHM) and CPA
 //=======================================================================================//
 
 
@@ -244,6 +253,8 @@ bool Loop::Run(IAresArray* a)
   //Initialize mixer
   printf("|||||||||||||||||||||||||| LOOP:: C0 = %d, C1 = %d\n",Coefs[0],Coefs[1]);
   Mixer< complex<double> > mixer(N*Nsites, NtoMix, Coefs, (UseBroyden) ? BroydenStartDiff : Accr);
+  mixer.DiffsFN = string("diffs.")+intermediateName;
+  mixer.PrintDiffs = PrintDiffs;
   mixer.Mix(a->totalDelta);
 
   //initialize broyden
@@ -282,18 +293,22 @@ bool Loop::Run(IAresArray* a)
        sprintf(FN,"intermediate/");
        char command[300];
        sprintf(command,"mkdir %s",FN);  
+       system(command);
        a->PrintAll(FN);
        printf("Next stop: ");
        cin >> Halt; 
      }
 
      //print out intermediate results
-     if (PrintIntermediate)
+     if (PrintIntermediate!=0)
+     if (Iteration%PrintIntermediate==0)
      { char FN[300];
-       sprintf(FN,"intermediate.%d/", it);
+       sprintf(FN,"%s.it%d", intermediateName.c_str(),it);
        char command[300];
        sprintf(command,"mkdir %s",FN);  
-       a->PrintAll(FN);
+       printf("Loop, print intermediate, command: %s\n",command);
+       system(command);
+       a->PrintAllMinimal(FN, IntermediateCutoff);
      }
 
      //--- self-consistency ---// 
@@ -327,11 +342,14 @@ bool Loop::Run(IAresArray* a)
          } 
          else conv = 1;
      }
-     
+     printf("   Loop: done...\n");     
+
      if (UseLambdaCalculator)
        LC->CalculateLambda(a->totalDelta);
 
+     printf("   Loop: about to read total Delta...\n");
      a->ReadTotalDelta();
+     printf("   Loop: read total Delta...\n");
      
      if ((conv==1)and(it>MIN_ITS)) { converged = true; break; }
   }

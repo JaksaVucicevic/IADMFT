@@ -13,19 +13,19 @@
 
 using namespace std;
 
-void Invert_Matrix_ge(complex<double>* invA, complex<double>* A, int N)
+void Invert_Matrix_ge(complex<double>* invA, complex<double>* A, long long int N)
 {
-  int LWORK=4*N*N;
+  long long int LWORK=4*N*N;
   int *permutations;
   MKL_Complex16 *WORK, *tempA;
   tempA = new MKL_Complex16 [N*N];
   permutations = new int[2*N];
   WORK = new MKL_Complex16 [4*N*N];
-  int *IPIV;
-  IPIV = new int[N];
-  int INFO=0;
+  long long int *IPIV;
+  IPIV = new long long int[N];
+  long long int INFO=0;
 
-  for (int l=0; l<N*N; ++l)
+  for (long long int l=0; l<N*N; ++l)
   {  tempA[l].real=real(A[l]);
      tempA[l].imag=imag(A[l]);
   }
@@ -35,7 +35,7 @@ void Invert_Matrix_ge(complex<double>* invA, complex<double>* A, int N)
     cout << "ComplexMatrixInverse: Error at zhetrf INFO = " << INFO; exit(0);
   }
   zgetri_( &N, tempA , &N, IPIV, WORK, &LWORK, &INFO );
-  for (int l=0; l<N*N; ++l)
+  for (long long int l=0; l<N*N; ++l)
     invA[l]=complex<double>(tempA[l].real,tempA[l].imag);
   if (INFO != 0)
   {
@@ -57,7 +57,7 @@ void InvertSymmetricMatrix(int N, complex<double>** A,  complex<double>** invA)
   for(int j=0; j<N; j++)
     X[i*N+j] = A[i][j];
 
-  Invert_Matrix_ge(invX, X, N);
+  Invert_Matrix_ge(invX, X, (long long int) N);
 
   for(int i=0; i<N; i++)
   for(int j=0; j<N; j++)

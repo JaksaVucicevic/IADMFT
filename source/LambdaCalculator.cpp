@@ -396,6 +396,7 @@ double LambdaCalculator::CalculateLambda(complex<double>* cX)
   }
 
   lambda_history[counter] = lambdas[0];
+  printf("lambda: %.3f\n",lambdas[0]);
 
   counter++;
 

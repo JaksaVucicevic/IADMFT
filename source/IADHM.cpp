@@ -24,6 +24,9 @@ void IADHM::Defaults()
 
     //UseBethe = true;
     PHSymmetricCase = false;
+    PatchDelta = false;
+    PatchTailWithAtomicLimit = false;
+    AtomicCutoff = 10.0;
 }
 
 IADHM::IADHM() : Loop()
@@ -111,12 +114,15 @@ void IADHM::SetMus( IAresArray &a, double* mus )
 }
 
 
+
 bool IADHM::SolveSIAM()
 {
   iasiams = new IASIAM[Nsites];
   #pragma omp parallel for
   for(int id=0; id<Nsites; id++)
-  { iasiams[id].SetUTepsilon(U,T,0.0);
+  { iasiams[id].PatchTailWithAtomicLimit = PatchTailWithAtomicLimit;
+    iasiams[id].AtomicCutoff = AtomicCutoff;
+    iasiams[id].SetUTepsilon(U,T,0.0);
     iasiams[id].PHSymmetricCase = PHSymmetricCase;
     iasiams[id].fft = &(fft[id]);
     iasiams[id].Run(&(a->r[id]));
@@ -148,7 +154,9 @@ void IADHM::CalcDelta()
     //if(n==0) PrintMatrix("G", Nsites, Nsites, G);
 
     for(int id=0; id<Nsites; id++)
-      a->r[id].Delta[n] = ii*a->r[id].omega[n] + a->r[id].mu - a->r[id].Sigma[n] - 1.0/G[id][id];
+    {  a->r[id].Delta[n] = ii*a->r[id].omega[n] + a->r[id].mu - a->r[id].Sigma[n] - 1.0/G[id][id];
+       if (PatchDelta) a->r[id].PatchDelta(AtomicCutoff);
+    }
 
     FreeArray2D< complex<double> >(invG, Nsites);
     FreeArray2D< complex<double> >(G, Nsites);

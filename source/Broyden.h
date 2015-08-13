@@ -98,16 +98,16 @@ bool UseBroyden(int N, int MAX_ITS, double Accr,
   //save initial guess
   complex<double>* Vinit = new complex<double>[N];
   for (int i=0; i<N; i++) Vinit[i] = V[i];
-
+  //printf("UseBroyden: about to do iterations\n");
   //------------- iterations ---------------------//
   for(int it = 1; it<=MAX_ITS; it++)
-  { //printf("    Broyden: Iteration %d...\n", it);
+  { //printf("    UseBroyden: Iteration %d...\n", it);
 
     (obj->*func)(V);
-
+     //printf("    UseBroyden: called func\n");
     //if initial guess satisfies Accr, do not use broyden at all 
     if (it==1)
-    {
+    { //printf("    UseBroyden: !!!!!\n");
       double MaxDiff = 0;
       for (int i=0; i<N; i++)
         if( abs( V[i] - Vinit[i] ) > MaxDiff ) 

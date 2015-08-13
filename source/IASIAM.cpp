@@ -122,8 +122,11 @@ bool IASIAM::Run(IAResult* r) //output
                         0.4, -0.4, 0.6, -0.6, 2.3, -2.3, 2.8, -2.8, 1.8, -1.8  }; 
   bool failed = !UseBroydenFormu0;  
   int c = 0;
+
+  //printf("IASIAM: about to do mu0 search\n");
+
   while ( UseBroydenFormu0 and ( UseBroyden<IASIAM>(1, MAX_ITS, Accr, &IASIAM::SolveSiam, this, V) != 1 ) )
-  { c++;
+  { c++;   //printf("IASIAM: passed the first broyden use\n");
     if ( (c >= max_tries) or (c >= sizeof(mu0inits)/sizeof(double) - 1 ) )
     {
       printf("\n\n\n\n==== IASIAM ERROR ====: Broyden mu0 search failed to converge. Now switching to amoeba ...\n\n\n\n");
@@ -135,7 +138,7 @@ bool IASIAM::Run(IAResult* r) //output
     printf("==================== ====================== ========== TRYING new mu0 int!!! c = %d, mu0init = %f\n\n\n",c, mu0inits[c]);
   };
 
-  if (failed) 
+  if ( (failed) or (abs(V[0])>5.0) ) 
   {  V[0] = mu0inits[0];  
      Amoeba(Accr, V, &IASIAM::SolveSiam); 
   }
@@ -258,19 +261,6 @@ void IASIAM::PatchAtomicLimitSigma()
 }
 */
 
-void IASIAM::PatchAtomicLimitSigma()
-{
-  for (int i=0; i<N; i++) 
-    if (r->omega[i]>AtomicCutoff) r->Sigma[i] = AtomicLimitSigma(r->omega[i], r->mu, r->n, U);
-}
-
-void IASIAM::PatchAtomicLimitG()
-{
-  for (int i=0; i<N; i++) 
-    if (r->omega[i]>AtomicCutoff) r->G[i] = AtomicLimitG(r->omega[i], r->mu, r->n, U);
-}
-
-
 void IASIAM::get_G0()
 {
   for (int i=0; i<N; i++) 
@@ -332,7 +322,7 @@ void IASIAM::get_Sigma()
       r->Sigma[i] =  U * r->n + r->SOCSigma[i];
   }
 
-  if (PatchTailWithAtomicLimit) PatchAtomicLimitSigma();
+  if (PatchTailWithAtomicLimit) r->PatchAtomicLimitSigma(AtomicCutoff, U);
 }
 
 //---------------- Get G -------------------------------//
@@ -344,7 +334,7 @@ void IASIAM::get_G()
   for (int i=0; i<N; i++) 
     r->G[i] =  1.0 / (ii*r->omega[i] + r->mu - epsilon - r->Delta[i] - r->Sigma[i]) ;   
 
-  if (PatchTailWithAtomicLimit) PatchAtomicLimitG();    
+  if (PatchTailWithAtomicLimit) r->PatchAtomicLimitG(AtomicCutoff, U);    
 }
 
 void IASIAM::get_G(complex<double>* V)
@@ -363,11 +353,13 @@ void IASIAM::SolveSiam(complex<double>* V)
   mu0 = real(V[0]);
 
   //--------------------//
+  //printf("IASIAM: about to get G0\n");
   get_G0();
-
+  //printf("IASIAM: about to get n\n");
   r->n0 = get_n(r->G0); 
   r->n = r->n0;
 
+  //printf("IASIAM: about to get n\n");
   fft->FtoT(r->G0, r->G0_tau);
   get_SOCSigma_tau();
   fft->TtoF(r->SOCSigma_tau, r->SOCSigma);

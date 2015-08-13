@@ -19,6 +19,9 @@ void IACHM::Defaults()
     PHSymmetricCase = true;
     UseFixedMuSIAMRun = false;
 
+    PatchDelta = true;
+    PatchTailWithAtomicLimit = false;
+
     t = 0.5;
 
     iasiam = new IASIAM();
@@ -159,15 +162,19 @@ void IACHM::CalcDelta()
     for (int i=0; i<N; i++)        
       r->Delta[i] = sqr(t) * r->G[i];        
   else    
-    for (int i=0; i<N; i++)
+  { for (int i=0; i<N; i++)
     { complex<double>* g = new complex<double>[Nw];
       for(int j=0; j<Nw; j++)
         g[j] = NIDOS[j] / (ii*r->omega[i] + r->mu - w[j] - r->Sigma[i]);
       r->G[i] = TrapezIntegral(Nw, g, w);  
-      r->Delta[i] = ii*r->omega[i] + r->mu - r->Sigma[i] - 1.0/r->G[i];    
       delete [] g;
     }
-
+    if (PatchTailWithAtomicLimit) r->PatchAtomicLimitG(AtomicCutoff, U);
+    for (int i=0; i<N; i++)
+      r->Delta[i] = ii*r->omega[i] + r->mu - r->Sigma[i] - 1.0/r->G[i];
+    if (PatchDelta) r->PatchDelta(AtomicCutoff);
+      
+  }
   if (PrintIntermediate)
   { char FN[300];
     sprintf( FN, "IACHM.U%.3f.T%.3f.it%d", U, T, Iteration);
